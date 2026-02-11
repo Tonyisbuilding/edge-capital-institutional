@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom interactive cursor for charts */
+.cursor-crosshair-custom {
+  cursor: crosshair;
+}
+
+body {
+  background-color: #F5F5F5;
+  color: #1A1A1A;
+}
