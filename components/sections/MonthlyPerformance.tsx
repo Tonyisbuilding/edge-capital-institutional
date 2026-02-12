@@ -66,7 +66,7 @@ export function MonthlyPerformance() {
 
             {/* ── 90% width wrapper ── */}
             <div
-                className="relative z-[3] w-[98%] md:w-[90%] mx-auto flex flex-col h-full"
+                className="relative z-[3] w-[98%] md:w-[90%] max-w-[1700px] mx-auto flex flex-col h-full"
                 style={{ paddingTop: 112, paddingBottom: 32 }}
             >
 

@@ -84,7 +84,7 @@ export function StressTest2022() {
                     {/* Section header — stays pinned at top */}
                     <div className="pt-8 md:pt-12 pb-4 pointer-events-none select-none">
                         <h2
-                            className="font-bold uppercase leading-[0.95] tracking-[-0.02em]"
+                            className="font-mono font-bold uppercase leading-[0.95] tracking-[-0.02em]"
                             style={{ fontSize: "clamp(1.8rem, 4vw, 4.5rem)" }}
                         >
                             <span className="block text-white">
@@ -114,7 +114,7 @@ export function StressTest2022() {
                             </p>
 
                             {/* Headline */}
-                            <h2 className="text-3xl md:text-4xl lg:text-[42px] font-light text-white leading-[1.15] mb-8">
+                            <h2 className="text-3xl md:text-4xl lg:text-[42px] font-mono font-light text-white leading-[1.15] mb-8">
                                 The 2022{" "}
                                 <span
                                     className="font-normal"
@@ -129,7 +129,7 @@ export function StressTest2022() {
                             </h2>
 
                             {/* Body */}
-                            <p className="text-[15px] md:text-base text-white/45 leading-[1.85] font-light">
+                            <p className="text-[15px] md:text-base text-white/45 leading-[1.85] font-mono font-light">
                                 In 2022, the 60/40 portfolio faced its worst year in decades as
                                 stocks and bonds fell together. In that same window, Edge
                                 Capital&apos;s volatility engines didn&apos;t just survive—they{" "}
@@ -154,7 +154,7 @@ export function StressTest2022() {
                                         Performance Spread
                                     </p>
                                     <p
-                                        className="text-3xl md:text-4xl font-light tabular-nums"
+                                        className="text-3xl md:text-4xl font-mono font-light tabular-nums"
                                         style={{
                                             background: "linear-gradient(135deg, #5EEAD4, #268197)",
                                             WebkitBackgroundClip: "text",
@@ -169,7 +169,7 @@ export function StressTest2022() {
                                     <p className="text-[10px] font-mono tracking-[0.2em] uppercase text-white/25 mb-1">
                                         Correlation to Benchmark
                                     </p>
-                                    <p className="text-3xl md:text-4xl font-light tabular-nums text-white/70">
+                                    <p className="text-3xl md:text-4xl font-mono font-light tabular-nums text-white/70">
                                         −0.82
                                     </p>
                                 </div>

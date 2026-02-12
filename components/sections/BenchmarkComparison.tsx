@@ -61,22 +61,26 @@ const ChamferedBar = ({
     strokeDasharray,
     topStroke,
 }: ChamferedBarProps) => {
-    // We measure the container div to get exact pixels for the SVG path
     const { ref, width, height } = useElementSize<HTMLDivElement>();
 
-    // Calculate path geometry
-    // Chamfer size C. If width is too small, clamp C.
     const c = Math.min(CHAMFER, width);
 
-    // Main shape: Starts at bottom-left, goes up, chamfers right, goes down.
-    // Coordinates: (0,H) -> (0,0) -> (W-C,0) -> (W,C) -> (W,H) -> Z
-    const pathD = `
+    // Closed shape for fill only
+    const fillPath = `
         M 0,${height} 
         L 0,0 
         L ${width - c},0 
         L ${width},${c} 
         L ${width},${height} 
         Z
+    `;
+
+    // Open path for dashed side borders (left + right only, no bottom)
+    const sidesPath = `
+        M 0,${height} 
+        L 0,0 
+        M ${width},${c} 
+        L ${width},${height}
     `;
 
     // Top highlight: (0,0) -> (W-C,0) -> (W,C)
@@ -103,10 +107,17 @@ const ChamferedBar = ({
                     </linearGradient>
                 </defs>
 
-                {/* Main Body */}
+                {/* Fill only (no stroke on bottom) */}
                 <path
-                    d={pathD}
+                    d={fillPath}
                     fill={`url(#${gradientId})`}
+                    stroke="none"
+                />
+
+                {/* Dashed side borders only */}
+                <path
+                    d={sidesPath}
+                    fill="none"
                     stroke={stroke}
                     strokeWidth="1"
                     strokeDasharray={strokeDasharray}
@@ -141,9 +152,9 @@ export function BenchmarkComparison() {
             className="relative w-full flex flex-col"
             style={{
                 backgroundColor: "#050A0C",
-                minHeight: "100vh",
+                minHeight: "110vh",
                 maxHeight: "1200px",
-                height: "100vh",
+                height: "110vh",
             }}
         >
             {/* ── CSS Grid lines ── */}
@@ -178,7 +189,7 @@ export function BenchmarkComparison() {
 
             {/* ── Width wrapper ── */}
             <div
-                className="relative z-[3] w-[98%] md:w-[90%] mx-auto flex flex-col h-full"
+                className="relative z-[3] w-[98%] md:w-[90%] max-w-[1700px] mx-auto flex flex-col h-full"
                 style={{ paddingTop: 112, paddingBottom: 32 }}
             >
                 {/* ══ CONTAINER ══ */}
@@ -265,7 +276,7 @@ export function BenchmarkComparison() {
                             >
                                 {/* Value + label */}
                                 <span
-                                    className="font-mono font-bold text-white mb-1"
+                                    className="font-mono font-medium text-white mb-0"
                                     style={{ fontSize: "35px" }}
                                 >
                                     {MSCI_WORLD.toFixed(1)}%
@@ -274,11 +285,21 @@ export function BenchmarkComparison() {
                                     MSCI World
                                 </span>
 
-                                {/* Dotted Line Connector */}
-                                <div
-                                    className="h-[50px] border-l-2 border-dotted border-[#8AABB0]/30 ml-1 mb-2"
-                                    aria-hidden="true"
-                                />
+                                {/* Dotted Line Connector with circle head */}
+                                <div className="flex flex-col items-start mb-2" aria-hidden="true">
+                                    <div
+                                        className="rounded-full mb-[-1px]"
+                                        style={{
+                                            width: 6,
+                                            height: 6,
+                                            backgroundColor: "#8AABB0",
+                                            opacity: 0.4,
+                                        }}
+                                    />
+                                    <div
+                                        className="h-[44px] border-l-2 border-dotted border-[#8AABB0]/30 ml-[2px]"
+                                    />
+                                </div>
 
                                 {/* Bar Component */}
                                 <ChamferedBar
@@ -290,7 +311,7 @@ export function BenchmarkComparison() {
                                             <stop offset="100%" stopColor="rgba(16, 24, 27, 0)" />
                                         </>
                                     }
-                                    stroke="rgba(63, 88, 94, 0.35)"
+                                    stroke="rgba(63, 88, 94, 0.1)"
                                     strokeDasharray="4 3"
                                     topStroke="#ACACAC"
                                 />
@@ -303,7 +324,7 @@ export function BenchmarkComparison() {
                             >
                                 {/* Value + label */}
                                 <span
-                                    className="font-mono font-bold text-[#5CCAD3] mb-1"
+                                    className="font-mono font-medium text-[#5CCAD3] mb-0"
                                     style={{ fontSize: "35px" }}
                                 >
                                     {EDGE_CAPITAL.toFixed(1)}%
@@ -312,11 +333,21 @@ export function BenchmarkComparison() {
                                     Edge Capital
                                 </span>
 
-                                {/* Dotted Line Connector */}
-                                <div
-                                    className="h-[50px] border-l-2 border-dotted border-[#5CCAD3]/30 ml-1 mb-2"
-                                    aria-hidden="true"
-                                />
+                                {/* Dotted Line Connector with circle head */}
+                                <div className="flex flex-col items-start mb-2" aria-hidden="true">
+                                    <div
+                                        className="rounded-full mb-[-1px]"
+                                        style={{
+                                            width: 6,
+                                            height: 6,
+                                            backgroundColor: "#5CCAD3",
+                                            opacity: 0.4,
+                                        }}
+                                    />
+                                    <div
+                                        className="h-[44px] border-l-2 border-dotted border-[#5CCAD3]/30 ml-[2px]"
+                                    />
+                                </div>
 
                                 {/* Bar Component */}
                                 <ChamferedBar
@@ -328,7 +359,7 @@ export function BenchmarkComparison() {
                                             <stop offset="100%" stopColor="rgba(12, 20, 22, 0)" />
                                         </>
                                     }
-                                    stroke="rgba(54, 199, 231, 0.25)"
+                                    stroke="rgba(54, 199, 231, 0.1)"
                                     strokeDasharray="4 3"
                                     topStroke="#268197"
                                 />
@@ -336,6 +367,63 @@ export function BenchmarkComparison() {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* ══ INFO CARDS — full section width ══ */}
+            <div className="relative z-[3] grid grid-cols-1 md:grid-cols-3 mt-auto max-w-[1700px] mx-auto w-full">
+                {[
+                    {
+                        num: "01",
+                        title: "REGULATED STRUCTURE",
+                        desc: "When the global 60/40 portfolio failed during the 2022 Rate Shock, our volatility and correlation engines did exactly what they were engineered to do.",
+                    },
+                    {
+                        num: "02",
+                        title: "ASSET SAFETY",
+                        desc: "Client assets are held in a separate legal entity (Stichting Bewaring), isolating investor capital from platform balance sheet risk.",
+                    },
+                    {
+                        num: "03",
+                        title: "LIQUID TERMS",
+                        desc: "Monthly liquidity with zero lock-up periods, ensuring capital remains accessible and decision-ready.",
+                    },
+                ].map((card, i) => (
+                    <div
+                        key={i}
+                        className="relative overflow-hidden px-6 py-8 flex flex-col gap-6"
+                        style={{
+                            backgroundColor: "#222D2F",
+                            borderRight:
+                                i < 2 ? "1px solid rgba(247, 249, 250, 0.15)" : "none",
+                        }}
+                    >
+                        {/* Grain overlay */}
+                        <div
+                            className="absolute inset-0 pointer-events-none z-[1]"
+                            style={{
+                                backgroundImage: "url(/grains.svg)",
+                                backgroundRepeat: "repeat",
+                                opacity: 0.03,
+                            }}
+                        />
+
+                        <div className="relative z-[2]">
+                            <span className="font-mono text-white text-xl font-bold">
+                                {card.num}
+                            </span>
+                            <span className="font-mono text-[#5A7A80] text-xl">{"//"}</span>
+                        </div>
+
+                        <div className="relative z-[2] mt-auto flex flex-col gap-2">
+                            <h3 className="font-mono text-white text-sm font-bold tracking-wide">
+                                {card.title}
+                            </h3>
+                            <p className="font-mono text-[#8AABB0] text-xs leading-relaxed">
+                                {card.desc}
+                            </p>
+                        </div>
+                    </div>
+                ))}
             </div>
         </section>
     );

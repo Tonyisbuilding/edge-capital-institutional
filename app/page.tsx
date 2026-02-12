@@ -4,10 +4,6 @@ import { StressDefinition } from "@/components/sections/StressDefinition";
 import { EngineTimeline } from "@/components/sections/EngineTimeline";
 import { MonthlyPerformance } from "@/components/sections/MonthlyPerformance";
 import { BenchmarkComparison } from "@/components/sections/BenchmarkComparison";
-import { Philosophy } from "@/components/sections/Philosophy";
-import { PlatformArchitecture } from "@/components/sections/PlatformArchitecture";
-import { AnalyticsModule } from "@/components/sections/AnalyticsModule";
-import { HistoricalPerformance } from "@/components/sections/HistoricalPerformance";
 import { NAVPerformance } from "@/components/sections/NAVPerformance";
 import { StressTest2022 } from "@/components/sections/StressTest2022";
 import { Governance } from "@/components/sections/Governance";
@@ -23,15 +19,13 @@ export default function Home() {
       <EngineTimeline />
       <MonthlyPerformance />
       <BenchmarkComparison />
-      <Philosophy />
-      <PlatformArchitecture />
-      <AnalyticsModule />
-      <HistoricalPerformance />
       <NAVPerformance />
       <StressTest2022 />
-      <Governance />
-      <InvestmentFramework />
-      <Footer />
+      <div style={{ display: "none" }}>
+        <Governance />
+        <InvestmentFramework />
+        <Footer />
+      </div>
     </main>
   );
 }

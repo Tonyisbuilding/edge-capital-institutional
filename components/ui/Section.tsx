@@ -13,7 +13,7 @@ const Section = React.forwardRef<HTMLDivElement, SectionProps>(
                 className={cn("py-16 md:py-24", className)}
                 {...props}
             >
-                <div className={cn("mx-auto px-4 md:px-8", fullWidth ? "w-full" : "max-w-7xl")}>
+                <div className={cn("mx-auto px-4 md:px-8", fullWidth ? "w-full" : "max-w-[1700px]")}>
                     {children}
                 </div>
             </section>

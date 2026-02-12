@@ -5,7 +5,7 @@ export function InvestmentFramework() {
     return (
         <Section className="bg-institutional-white border-b border-institutional-charcoal/10 pb-32">
             <div className="mb-12">
-                <h2 className="text-3xl md:text-4xl font-serif font-bold text-institutional-charcoal mb-4">
+                <h2 className="text-3xl md:text-4xl font-mono font-bold text-institutional-charcoal mb-4">
                     Investment Framework
                 </h2>
             </div>
@@ -13,7 +13,7 @@ export function InvestmentFramework() {
             <Grid cols={3} className="divide-y md:divide-y-0 md:divide-x divide-institutional-charcoal/10">
                 {/* Col 1: The Fund */}
                 <div className="pt-8 md:pt-0 md:pr-8">
-                    <h3 className="font-serif text-xl font-bold text-institutional-charcoal mb-6">
+                    <h3 className="font-mono text-xl font-bold text-institutional-charcoal mb-6">
                         The Fund (Commingled)
                     </h3>
                     <ul className="space-y-4 text-sm text-institutional-charcoal/80">
@@ -34,7 +34,7 @@ export function InvestmentFramework() {
 
                 {/* Col 2: Managed Accounts */}
                 <div className="pt-8 md:pt-0 md:px-8">
-                    <h3 className="font-serif text-xl font-bold text-institutional-charcoal mb-6">
+                    <h3 className="font-mono text-xl font-bold text-institutional-charcoal mb-6">
                         Managed Accounts
                     </h3>
                     <div className="space-y-4 text-sm text-institutional-charcoal/80 leading-relaxed">
@@ -49,7 +49,7 @@ export function InvestmentFramework() {
 
                 {/* Col 3: Service Partners */}
                 <div className="pt-8 md:pt-0 md:pl-8">
-                    <h3 className="font-serif text-xl font-bold text-institutional-charcoal mb-6">
+                    <h3 className="font-mono text-xl font-bold text-institutional-charcoal mb-6">
                         Service Partners
                     </h3>
                     <ul className="space-y-4 text-sm text-institutional-charcoal/80">

@@ -58,7 +58,7 @@ export function Hero() {
                         </div>
 
                         {/* Card Content */}
-                        <p className="text-institutional-slate/80 leading-relaxed font-sans text-[clamp(0.875rem,2vw,1.5rem)]">
+                        <p className="text-institutional-slate/80 leading-relaxed font-mono text-[clamp(0.875rem,2vw,1.5rem)]">
                             We monetize the measurable mechanisms of market stress—volatility repricing, dispersion, and correlation stress—across highly liquid G10 FX and exchange-traded equity index derivatives (SPX/ES options &amp; futures), built for unstable and unpredictable regimes and designed to deliver a liquid return stream that is less dependent on equity/interest rate beta than traditional portfolios.
                         </p>
                     </div>

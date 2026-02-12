@@ -13,7 +13,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             <button
                 ref={ref}
                 className={cn(
-                    "inline-flex items-center justify-center rounded-none font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-institutional-teal disabled:pointer-events-none disabled:opacity-50 font-serif tracking-wide border-0 cursor-pointer",
+                    "inline-flex items-center justify-center rounded-none font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-institutional-teal disabled:pointer-events-none disabled:opacity-50 font-mono tracking-wide border-0 cursor-pointer",
                     {
                         "bg-institutional-navy text-institutional-white hover:bg-institutional-navy/90":
                             variant === "primary",

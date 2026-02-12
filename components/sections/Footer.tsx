@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/Button";
 export function Footer() {
     return (
         <footer className="bg-institutional-white border-t border-institutional-charcoal/10 pt-16 pb-8">
-            <div className="max-w-7xl mx-auto px-4 md:px-8">
+            <div className="max-w-[1700px] mx-auto px-4 md:px-8">
                 <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-16">
                     <div className="space-y-6 max-w-sm">
-                        <span className="text-xl font-bold font-serif tracking-tight text-institutional-charcoal">
+                        <span className="text-xl font-bold font-mono tracking-tight text-institutional-charcoal">
                             Edge Capital
                         </span>
                         <div className="text-sm text-institutional-charcoal/70 space-y-1">
@@ -29,7 +29,7 @@ export function Footer() {
                 </div>
 
                 <div className="border-t border-institutional-charcoal/10 pt-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-[10px] md:text-xs text-institutional-charcoal/40 font-sans leading-relaxed">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-[10px] md:text-xs text-institutional-charcoal/40 font-mono leading-relaxed">
                         <p>
                             Past results are no guarantee of future returns. Investments linked to the Volatility Premium Risk strategy can both rise and fall. You may lose your entire investment.
                         </p>

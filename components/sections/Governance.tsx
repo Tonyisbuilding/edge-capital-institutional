@@ -5,7 +5,7 @@ export function Governance() {
     return (
         <Section className="bg-institutional-white border-b border-institutional-charcoal/10">
             <div className="mb-12 max-w-2xl">
-                <h2 className="text-3xl md:text-4xl font-serif font-bold text-institutional-charcoal mb-4">
+                <h2 className="text-3xl md:text-4xl font-mono font-bold text-institutional-charcoal mb-4">
                     Governance & Risk
                 </h2>
                 <p className="text-lg text-institutional-charcoal/70">
@@ -32,7 +32,7 @@ export function Governance() {
                             />
                         </svg>
                     </div>
-                    <h3 className="font-serif text-xl font-bold text-institutional-charcoal mb-4 pr-12">
+                    <h3 className="font-mono text-xl font-bold text-institutional-charcoal mb-4 pr-12">
                         Deterioration Protocols
                     </h3>
                     <p className="text-sm leading-relaxed text-institutional-charcoal/80">
@@ -54,7 +54,7 @@ export function Governance() {
                             <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                     </div>
-                    <h3 className="font-serif text-xl font-bold text-institutional-charcoal mb-4 pr-12">
+                    <h3 className="font-mono text-xl font-bold text-institutional-charcoal mb-4 pr-12">
                         Liquidity-First Eligibility
                     </h3>
                     <p className="text-sm leading-relaxed text-institutional-charcoal/80">
@@ -76,7 +76,7 @@ export function Governance() {
                             <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                         </svg>
                     </div>
-                    <h3 className="font-serif text-xl font-bold text-institutional-charcoal mb-4 pr-12">
+                    <h3 className="font-mono text-xl font-bold text-institutional-charcoal mb-4 pr-12">
                         Separation of Drivers
                     </h3>
                     <p className="text-sm leading-relaxed text-institutional-charcoal/80">
