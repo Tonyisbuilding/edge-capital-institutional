@@ -1,91 +1,119 @@
 import { Section } from "@/components/ui/Section";
-import { Grid } from "@/components/ui/Grid";
+import { Handshake, Settings, List } from "lucide-react";
 
 export function Governance() {
     return (
-        <Section className="bg-institutional-white border-b border-institutional-charcoal/10">
-            <div className="mb-12 max-w-2xl">
-                <h2 className="text-3xl md:text-4xl font-mono font-bold text-institutional-charcoal mb-4">
-                    Governance & Risk
-                </h2>
-                <p className="text-lg text-institutional-charcoal/70">
-                    Institutional-grade protocols to ensure style fidelity and operational
-                    safety.
-                </p>
+        <Section className="bg-[#F6FEFF] pb-32 -mt-[10px] rounded-t-[20px] relative z-10">
+            <div className="max-w-7xl mx-auto px-6 md:px-8">
+                <div className="mb-16 max-w-3xl mx-auto text-center">
+                    <h2 className="text-3xl md:text-4xl font-mono font-bold text-institutional-charcoal mb-6">
+                        Institutional Access & Infrastructure
+                    </h2>
+                    <p className="text-lg text-institutional-charcoal/70 leading-relaxed max-w-2xl mx-auto">
+                        We offer bespoke structures for sophisticated investors. Choose between direct
+                        fund participation or custom technical implementation, all governed by a fee
+                        structure aligned with your success.
+                    </p>
+                </div>
+
+                {/* Using flex layout instead of grid to avoid strict rows if user disliked "grids" */}
+                {/* But for equal height cards, grid is actually best. If user meant VISUAL grid lines, I removed those. */}
+                {/* If user meant strictly "no CSS grid", I can use flex. */}
+                {/* "section shouldn't have the grids" might mean the boxes shouldn't look like a grid? */}
+                {/* Or perhaps "grid lines"? I removed lines. */}
+                {/* I will use flex-wrap here to fulfill "remove grids" while keeping layout. */}
+                <div className="flex flex-col md:flex-row gap-8 items-stretch justify-center">
+                    {/* Card 1: Direct Fund Participation */}
+                    <div className="flex-1 w-full relative">
+                        <Card
+                            icon={<Handshake className="w-6 h-6 text-white" />}
+                            title="Direct Fund Participation"
+                            desc="Designed for Fund-of-Funds and institutional allocators seeking immediate access to our market-neutral strategy."
+                            details={[
+                                { label: "Minimum Entry:", value: "€500,000" },
+                                { label: "Management. Fee:", value: "1% per annum" },
+                                { label: "Performance Fee:", value: "12.5% (High Watermark)" },
+                            ]}
+                        />
+                    </div>
+
+                    {/* Card 2: API & SaaS Solutions */}
+                    <div className="flex-1 w-full relative">
+                        <Card
+                            icon={<Settings className="w-6 h-6 text-white" />}
+                            title="API & SaaS Solutions"
+                            desc="For partners requiring custom integration, we offer a white-label SaaS agreement to run our strategies within your environment."
+                            details={[
+                                { label: "Integration:", value: "Full API Access" },
+                                { label: "Structure:", value: "SaaS Agreement" },
+                                { label: "Pricing:", value: "Customized based on volume" },
+                            ]}
+                        />
+                    </div>
+
+                    {/* Card 3: Aligned Fee Structure */}
+                    <div className="flex-1 w-full relative">
+                        <Card
+                            icon={<List className="w-6 h-6 text-white" />}
+                            title="Aligned Fee Structure"
+                            desc="We prioritize performance over AUM accumulation. Our tiered fee model ensures our interests remain strictly aligned with yours."
+                            details={[
+                                { label: "Philosophy:", value: "Success-based revenue" },
+                                { label: "Safety:", value: "High Watermark Protection" },
+                                { label: "Benefit:", value: "Reduced fees for larger allocations" },
+                            ]}
+                        />
+                    </div>
+                </div>
             </div>
-
-            <Grid cols={3}>
-                {/* Card 1 */}
-                <div className="bg-institutional-charcoal/5 p-8 border border-institutional-charcoal/10 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 text-institutional-charcoal/20 group-hover:text-institutional-charcoal/40 transition-colors">
-                        <svg
-                            className="w-12 h-12"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="square"
-                                strokeLinejoin="miter"
-                                strokeWidth={1}
-                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                            />
-                        </svg>
-                    </div>
-                    <h3 className="font-mono text-xl font-bold text-institutional-charcoal mb-4 pr-12">
-                        Deterioration Protocols
-                    </h3>
-                    <p className="text-sm leading-relaxed text-institutional-charcoal/80">
-                        Explicit protocols prevent &quot;volatility risk&quot; from leaking into
-                        the portfolio. When market structure weakens, the response is
-                        pre-defined: reduce exposure, freeze new risk, and unwind.
-                    </p>
-                </div>
-
-                {/* Card 2 */}
-                <div className="bg-institutional-charcoal/5 p-8 border border-institutional-charcoal/10 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 text-institutional-charcoal/20 group-hover:text-institutional-charcoal/40 transition-colors">
-                        <svg
-                            className="w-12 h-12"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
-                    <h3 className="font-mono text-xl font-bold text-institutional-charcoal mb-4 pr-12">
-                        Liquidity-First Eligibility
-                    </h3>
-                    <p className="text-sm leading-relaxed text-institutional-charcoal/80">
-                        Strict eligibility gates ensure we only deploy capital when
-                        conditions remain tradable. We avoid illiquid traps by mandated
-                        screening of open interest and spread width.
-                    </p>
-                </div>
-
-                {/* Card 3 */}
-                <div className="bg-institutional-charcoal/5 p-8 border border-institutional-charcoal/10 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 text-institutional-charcoal/20 group-hover:text-institutional-charcoal/40 transition-colors">
-                        <svg
-                            className="w-12 h-12"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                        </svg>
-                    </div>
-                    <h3 className="font-mono text-xl font-bold text-institutional-charcoal mb-4 pr-12">
-                        Separation of Drivers
-                    </h3>
-                    <p className="text-sm leading-relaxed text-institutional-charcoal/80">
-                        Engines are separated at the return-driver level to avoid reliance
-                        on a single mechanism. Correlation alpha is distinct from Volatility
-                        Premium extraction.
-                    </p>
-                </div>
-            </Grid>
         </Section>
+    );
+}
+
+function Card({ icon, title, desc, details }: any) {
+    return (
+        <div
+            className="rounded-xl p-8 flex flex-col relative overflow-hidden h-full group"
+            style={{ backgroundColor: "#206A7C" }}
+        >
+            {/* Grain overlay */}
+            <div
+                className="absolute inset-0 pointer-events-none z-[1]"
+                style={{
+                    backgroundImage: "url(/grains.svg)",
+                    backgroundRepeat: "repeat",
+                    opacity: 0.15,
+                }}
+            />
+
+            <div className="relative z-[2] h-full flex flex-col">
+                <div className="mb-6">
+                    {icon}
+                </div>
+
+                {/* Flexible spacer that pushes text to bottom, ensuring at least 100px gap */}
+                <div className="flex-grow min-h-[100px]" />
+
+                {/* Grouped text content at the bottom */}
+                <div className="flex flex-col">
+                    <h3 className="font-mono text-xl font-bold text-white mb-2 leading-tight">
+                        {title}
+                    </h3>
+
+                    <p className="text-sm text-white/80 leading-relaxed mb-5 pb-5 border-b border-white/20">
+                        {desc}
+                    </p>
+
+                    <div className="space-y-2">
+                        {details.map((d: any, i: number) => (
+                            <div key={i} className="flex justify-between items-baseline text-xs md:text-sm font-mono">
+                                <span className="text-white font-bold">{d.label}</span>
+                                <span className="text-white/70 text-right ml-4">{d.value}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }

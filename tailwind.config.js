@@ -16,8 +16,8 @@ module.exports = {
         'analytics-bg': '#0B0F19',
       },
       fontFamily: {
-        mono: ['var(--font-geist-mono)', 'monospace'],
-        sans: ['var(--font-geist-sans)', 'sans-serif'],
+        mono: ['var(--font-jakarta)', 'monospace'],
+        sans: ['var(--font-jakarta)', 'sans-serif'],
       },
     },
   },

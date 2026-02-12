@@ -8,7 +8,8 @@ import { NAVPerformance } from "@/components/sections/NAVPerformance";
 import { StressTest2022 } from "@/components/sections/StressTest2022";
 import { Governance } from "@/components/sections/Governance";
 import { InvestmentFramework } from "@/components/sections/InvestmentFramework";
-import { Footer } from "@/components/sections/Footer";
+import Footer from "@/components/sections/Footer";
+import Contact from "@/components/sections/Contact";
 
 export default function Home() {
   return (
@@ -21,11 +22,12 @@ export default function Home() {
       <BenchmarkComparison />
       <NAVPerformance />
       <StressTest2022 />
+      <Governance />
       <div style={{ display: "none" }}>
-        <Governance />
         <InvestmentFramework />
-        <Footer />
       </div>
+      <Contact />
+      <Footer />
     </main>
   );
 }

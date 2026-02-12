@@ -264,7 +264,7 @@ export function BenchmarkComparison() {
 
 
                         {/* RIGHT — Comparison bars */}
-                        <div className="md:w-[40%] flex items-end justify-center gap-8 md:gap-12 relative">
+                        <div className="w-full h-[360px] md:h-auto md:w-[40%] flex items-end justify-center gap-8 md:gap-12 relative">
                             {/* MSCI World bar (shorter) */}
                             <div
                                 className="flex flex-col items-start justify-end h-full"

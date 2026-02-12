@@ -108,5 +108,5 @@ export function InteractiveGrid({ className = "" }: InteractiveGridProps) {
         };
     }, []);
 
-    return <canvas ref={canvasRef} className={`fixed inset-0 pointer-events-none ${className}`} />;
+    return <canvas ref={canvasRef} className={`absolute inset-0 pointer-events-none ${className}`} />;
 }

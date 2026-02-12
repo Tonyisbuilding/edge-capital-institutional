@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import "@/styles/common.css";
+import { Providers } from "./providers";
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-jakarta",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Edge Capital Institutional",
@@ -16,9 +23,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased bg-institutional-white text-institutional-charcoal overflow-x-hidden`}
+        className={`${jakarta.variable} font-sans antialiased bg-institutional-white text-institutional-charcoal overflow-x-hidden`}
       >
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );
