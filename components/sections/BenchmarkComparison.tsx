@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 /* ═══════════════════════════════════════════════════════════
    Data — will be dynamic from DB/Google Sheets later
@@ -9,16 +9,132 @@ const EDGE_CAPITAL = 180.9;
 const MSCI_WORLD = 65.4;
 const maxVal = Math.max(EDGE_CAPITAL, MSCI_WORLD);
 
-/* Chamfer size in SVG units for the 45-degree cut */
+/* Chamfer size in pixels (fixed to ensure same angle) */
 const CHAMFER = 45;
+
+/* ═══════════════════════════════════════════════════════════
+   Helpers
+   ═══════════════════════════════════════════════════════════ */
+
+/**
+ * Hook to measure an element's size.
+ * Uses ResizeObserver to get precise pixel dimensions.
+ */
+function useElementSize<T extends HTMLElement>() {
+    const ref = useRef<T>(null);
+    const [size, setSize] = useState({ width: 0, height: 0 });
+
+    useEffect(() => {
+        if (!ref.current) return;
+        const observer = new ResizeObserver((entries) => {
+            const entry = entries[0];
+            // Use borderBoxSize if available for robustness, or contentRect
+            const { width, height } = entry.contentRect;
+            setSize({ width, height });
+        });
+        observer.observe(ref.current);
+        return () => observer.disconnect();
+    }, []);
+
+    return { ref, width: size.width, height: size.height };
+}
+
+/**
+ * ChamferedBar Component
+ * Renders a bar with a fixed 45px chamfer at the top-right.
+ * Uses exact pixel paths via SVG to avoid aspect-ratio distortion.
+ */
+interface ChamferedBarProps {
+    heightPct: number;
+    gradientId: string;
+    gradientStops: React.ReactNode;
+    stroke: string;
+    strokeDasharray?: string;
+    topStroke: string;
+}
+
+const ChamferedBar = ({
+    heightPct,
+    gradientId,
+    gradientStops,
+    stroke,
+    strokeDasharray,
+    topStroke,
+}: ChamferedBarProps) => {
+    // We measure the container div to get exact pixels for the SVG path
+    const { ref, width, height } = useElementSize<HTMLDivElement>();
+
+    // Calculate path geometry
+    // Chamfer size C. If width is too small, clamp C.
+    const c = Math.min(CHAMFER, width);
+
+    // Main shape: Starts at bottom-left, goes up, chamfers right, goes down.
+    // Coordinates: (0,H) -> (0,0) -> (W-C,0) -> (W,C) -> (W,H) -> Z
+    const pathD = `
+        M 0,${height} 
+        L 0,0 
+        L ${width - c},0 
+        L ${width},${c} 
+        L ${width},${height} 
+        Z
+    `;
+
+    // Top highlight: (0,0) -> (W-C,0) -> (W,C)
+    const topPathD = `
+        M 0,0 
+        L ${width - c},0 
+        L ${width},${c}
+    `;
+
+    return (
+        <div
+            ref={ref}
+            className="w-full relative"
+            style={{ height: `${heightPct}%` }}
+        >
+            <svg
+                width="100%"
+                height="100%"
+                className="overflow-visible block"
+            >
+                <defs>
+                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                        {gradientStops}
+                    </linearGradient>
+                </defs>
+
+                {/* Main Body */}
+                <path
+                    d={pathD}
+                    fill={`url(#${gradientId})`}
+                    stroke={stroke}
+                    strokeWidth="1"
+                    strokeDasharray={strokeDasharray}
+                />
+
+                {/* Top Chamfer Border */}
+                <path
+                    d={topPathD}
+                    fill="none"
+                    stroke={topStroke}
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+            </svg>
+        </div>
+    );
+};
 
 /* ═══════════════════════════════════════════════════════════
    Component
    ═══════════════════════════════════════════════════════════ */
 export function BenchmarkComparison() {
-    /* Heights as percentage of max — taller bar = 100% */
-    const edgePct = (EDGE_CAPITAL / maxVal) * 100;
-    const msciPct = (MSCI_WORLD / maxVal) * 100;
+    /* Heights as percentage of max — taller bar = 100% of the allocated height */
+    // However, visual design might want the bars to be grounded.
+    // We used 0.8 scale factor in previous code `edgePct * 0.8`.
+    const edgePct = (EDGE_CAPITAL / maxVal) * 100 * 0.8;
+    const msciPct = (MSCI_WORLD / maxVal) * 100 * 0.8;
 
     return (
         <section
@@ -139,11 +255,12 @@ export function BenchmarkComparison() {
                             </button>
                         </div>
 
+
                         {/* RIGHT — Comparison bars */}
-                        <div className="md:w-[40%] flex items-end justify-center gap-1 md:gap-2 relative">
+                        <div className="md:w-[40%] flex items-end justify-center gap-8 md:gap-12 relative">
                             {/* MSCI World bar (shorter) */}
                             <div
-                                className="flex flex-col items-end h-full"
+                                className="flex flex-col items-start justify-end h-full"
                                 style={{ width: "clamp(100px, 18vw, 220px)" }}
                             >
                                 {/* Value + label */}
@@ -153,49 +270,35 @@ export function BenchmarkComparison() {
                                 >
                                     {MSCI_WORLD.toFixed(1)}%
                                 </span>
-                                <span className="font-mono text-[10px] md:text-xs text-[#8AABB0] tracking-wide mb-3">
+                                <span className="font-mono text-[10px] md:text-xs text-[#8AABB0] tracking-wide mb-2">
                                     MSCI World
                                 </span>
 
-                                {/* Bar with 45-degree chamfer on right side */}
+                                {/* Dotted Line Connector */}
                                 <div
-                                    className="w-full relative"
-                                    style={{ height: `${msciPct * 0.8}%` }}
-                                >
-                                    <svg
-                                        viewBox={`0 0 200 300`}
-                                        preserveAspectRatio="none"
-                                        className="w-full h-full"
-                                    >
-                                        <defs>
-                                            <linearGradient id="msciGrad" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="0%" stopColor="rgba(41, 53, 56, 1)" />
-                                                <stop offset="100%" stopColor="rgba(16, 24, 27, 0)" />
-                                            </linearGradient>
-                                        </defs>
-                                        {/* Chamfered shape: top-right 45° cut */}
-                                        <polygon
-                                            points={`0,0 ${200 - CHAMFER},0 200,${CHAMFER} 200,300 0,300`}
-                                            fill="url(#msciGrad)"
-                                            stroke="rgba(63, 88, 94, 0.35)"
-                                            strokeWidth="1"
-                                            strokeDasharray="4 3"
-                                        />
-                                        {/* Solid top & chamfer edge */}
-                                        <polyline
-                                            points={`0,0 ${200 - CHAMFER},0 200,${CHAMFER}`}
-                                            fill="none"
-                                            stroke="#ACACAC"
-                                            strokeWidth="2.5"
-                                            strokeLinejoin="miter"
-                                        />
-                                    </svg>
-                                </div>
+                                    className="h-[50px] border-l-2 border-dotted border-[#8AABB0]/30 ml-1 mb-2"
+                                    aria-hidden="true"
+                                />
+
+                                {/* Bar Component */}
+                                <ChamferedBar
+                                    heightPct={msciPct}
+                                    gradientId="msciGrad"
+                                    gradientStops={
+                                        <>
+                                            <stop offset="0%" stopColor="rgba(41, 53, 56, 1)" />
+                                            <stop offset="100%" stopColor="rgba(16, 24, 27, 0)" />
+                                        </>
+                                    }
+                                    stroke="rgba(63, 88, 94, 0.35)"
+                                    strokeDasharray="4 3"
+                                    topStroke="#ACACAC"
+                                />
                             </div>
 
                             {/* Edge Capital bar (taller) */}
                             <div
-                                className="flex flex-col items-end h-full"
+                                className="flex flex-col items-start justify-end h-full"
                                 style={{ width: "clamp(100px, 18vw, 220px)" }}
                             >
                                 {/* Value + label */}
@@ -205,44 +308,30 @@ export function BenchmarkComparison() {
                                 >
                                     {EDGE_CAPITAL.toFixed(1)}%
                                 </span>
-                                <span className="font-mono text-[10px] md:text-xs text-[#8AABB0] tracking-wide mb-3">
+                                <span className="font-mono text-[10px] md:text-xs text-[#8AABB0] tracking-wide mb-2">
                                     Edge Capital
                                 </span>
 
-                                {/* Bar with 45-degree chamfer on right side */}
+                                {/* Dotted Line Connector */}
                                 <div
-                                    className="w-full relative"
-                                    style={{ height: `${edgePct * 0.8}%` }}
-                                >
-                                    <svg
-                                        viewBox={`0 0 200 300`}
-                                        preserveAspectRatio="none"
-                                        className="w-full h-full"
-                                    >
-                                        <defs>
-                                            <linearGradient id="edgeGrad" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="0%" stopColor="rgba(54, 199, 231, 0.23)" />
-                                                <stop offset="100%" stopColor="rgba(12, 20, 22, 0)" />
-                                            </linearGradient>
-                                        </defs>
-                                        {/* Chamfered shape: top-right 45° cut */}
-                                        <polygon
-                                            points={`0,0 ${200 - CHAMFER},0 200,${CHAMFER} 200,300 0,300`}
-                                            fill="url(#edgeGrad)"
-                                            stroke="rgba(54, 199, 231, 0.25)"
-                                            strokeWidth="1"
-                                            strokeDasharray="4 3"
-                                        />
-                                        {/* Solid top & chamfer edge */}
-                                        <polyline
-                                            points={`0,0 ${200 - CHAMFER},0 200,${CHAMFER}`}
-                                            fill="none"
-                                            stroke="#268197"
-                                            strokeWidth="2.5"
-                                            strokeLinejoin="miter"
-                                        />
-                                    </svg>
-                                </div>
+                                    className="h-[50px] border-l-2 border-dotted border-[#5CCAD3]/30 ml-1 mb-2"
+                                    aria-hidden="true"
+                                />
+
+                                {/* Bar Component */}
+                                <ChamferedBar
+                                    heightPct={edgePct}
+                                    gradientId="edgeGrad"
+                                    gradientStops={
+                                        <>
+                                            <stop offset="0%" stopColor="rgba(54, 199, 231, 0.23)" />
+                                            <stop offset="100%" stopColor="rgba(12, 20, 22, 0)" />
+                                        </>
+                                    }
+                                    stroke="rgba(54, 199, 231, 0.25)"
+                                    strokeDasharray="4 3"
+                                    topStroke="#268197"
+                                />
                             </div>
                         </div>
                     </div>
