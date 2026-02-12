@@ -149,12 +149,9 @@ export function BenchmarkComparison() {
 
     return (
         <section
-            className="relative w-full flex flex-col"
+            className="relative w-full flex flex-col md:min-h-[110vh] md:max-h-[1200px] md:h-[110vh]"
             style={{
                 backgroundColor: "#050A0C",
-                minHeight: "110vh",
-                maxHeight: "1200px",
-                height: "110vh",
             }}
         >
             {/* ── CSS Grid lines ── */}
@@ -194,10 +191,9 @@ export function BenchmarkComparison() {
             >
                 {/* ══ CONTAINER ══ */}
                 <div
-                    className="relative rounded-2xl overflow-hidden flex flex-col flex-1"
+                    className="relative rounded-2xl overflow-hidden flex flex-col flex-1 md:max-h-[95%]"
                     style={{
                         backgroundColor: "#050A0C",
-                        maxHeight: "95%",
                     }}
                 >
                     {/* Grain overlay @ 3% */}
