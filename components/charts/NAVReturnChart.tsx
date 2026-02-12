@@ -366,14 +366,15 @@ const YAxisTick = ({ x, y, payload }: any) => (
 // Chart Component
 // ------------------------------------------------------------------
 export function NAVReturnChart() {
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
     return (
         <div className="w-full">
             <ChartStatsHeader />
-            <div className="w-full h-[480px] md:h-[520px] font-mono text-xs">
+            <div className="w-auto -mx-[10px] md:-mx-8 h-[480px] md:h-[520px] font-mono text-xs">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart
                         data={navReturnData}
-                        margin={{ top: 10, right: 24, left: 8, bottom: 24 }}
+                        margin={{ top: 10, right: isMobile ? 8 : 24, left: isMobile ? 0 : 8, bottom: 24 }}
                         className="cursor-crosshair-custom"
                     >
                         <CartesianGrid

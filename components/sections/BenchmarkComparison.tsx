@@ -149,7 +149,7 @@ export function BenchmarkComparison() {
 
     return (
         <section
-            className="relative w-full flex flex-col md:min-h-[110vh] md:max-h-[1200px] md:h-[110vh]"
+            className="relative w-full flex flex-col md:min-h-[110vh] md:max-h-[1200px] md:h-[110vh] overflow-hidden"
             style={{
                 backgroundColor: "#050A0C",
             }}

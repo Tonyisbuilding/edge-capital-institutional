@@ -141,7 +141,7 @@ export function StressTest2022() {
                     </div>
 
                     {/* Chart — full width */}
-                    <div className="w-full" style={{ height: "55vh" }}>
+                    <div className="w-auto -mx-[10px]" style={{ height: "55vh" }}>
                         <StressTestChart2022 />
                     </div>
                 </div>

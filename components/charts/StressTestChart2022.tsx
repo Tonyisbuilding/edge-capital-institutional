@@ -102,7 +102,7 @@ const msciValues = msciWeekly.map(v => {
     return +(100 + (v - 100) * scale).toFixed(2);
 });
 
-const chartData = weekLabels.map((label, i) => ({
+export const chartData = weekLabels.map((label, i) => ({
     week: label,
     edge: edgeValues[i],
     msci: msciValues[i],
@@ -186,15 +186,17 @@ const AnnotationLayer = () => {
 // ------------------------------------------------------------------
 // Main Component
 // ------------------------------------------------------------------
-export function StressTestChart2022() {
+export function StressTestChart2022({ data }: { data?: typeof chartData }) {
+    const displayData = data || chartData;
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
     return (
         <div className="relative h-full">
             {/* Chart */}
             <div className="w-full h-full font-mono" style={{ fontSize: 'inherit' }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart
-                        data={chartData}
-                        margin={{ top: 20, right: 80, left: 8, bottom: 24 }}
+                        data={displayData}
+                        margin={{ top: 20, right: isMobile ? 16 : 80, left: isMobile ? 0 : 8, bottom: 24 }}
                     >
                         {/* Faint grid */}
                         <CartesianGrid
@@ -238,8 +240,11 @@ export function StressTestChart2022() {
                                 // value is "Jan 1", "Jan 8"...
                                 // Show label if day is <= 7 (first week of month)
                                 const [m, d] = value.split(" ");
-                                if (Number(d) <= 7) return m;
-                                return "";
+                                if (Number(d) > 7) return "";
+                                // On mobile, show every other month (Jan, Mar, May, Jul, Sep, Nov)
+                                const everyOtherMonths = ["Jan", "Mar", "May", "Jul", "Sep", "Nov"];
+                                if (isMobile && !everyOtherMonths.includes(m)) return "";
+                                return m;
                             }}
                         />
                         <YAxis
