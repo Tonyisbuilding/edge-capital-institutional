@@ -72,7 +72,7 @@ export function Hero() {
                             className="bg-white text-black hover:bg-white/90 font-mono text-sm h-12 px-6 flex items-center gap-2"
                         >
                             <CloudDownload className="w-4 h-4" />
-                            Main call to action
+                            Download Factsheet
                         </Button>
                     </div>
                 </div>

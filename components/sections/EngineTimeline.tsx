@@ -6,33 +6,32 @@ import { motion, useScroll, useTransform } from "framer-motion";
 /* ═══════════════════════════════════════════════════════════
    Data
    ═══════════════════════════════════════════════════════════ */
+import images from "@/constants/images";
+
 const ITEMS = [
     {
         tab: "Engine one",
         step: "01",
         title: "Market Neutral\nVolatility Premium",
         description:
-            "We monetize the measurable mechanisms of market stress—volatility repricing, dispersion, and correlation stress—across highly liquid G10 FX and exchange-traded equity index derivatives (SPX/ES options & futures), built for unstable and",
-        buttons: ["We monetize", "We monetize"],
-        imgLabel: "Img 1",
+            "We systematically harvest the structural spread between Implied Volatility (market fear) and Realized Volatility (actual movement). By selling expensive convexity while dynamically hedging Delta, we generate consistent yield that is mathematically independent of market direction.",
+        imgSrc: "/Market Neutral Volatility Premium.png",
     },
     {
         tab: "Engine two",
         step: "02",
         title: "Correlation / Relative-\nValue Dislocation",
         description:
-            "We monetize the measurable mechanisms of market stress—volatility repricing, dispersion, and correlation stress—across highly liquid G10 FX and exchange-traded equity index derivatives (SPX/ES options & futures), built for unstable and",
-        buttons: ["We monetize", "We monetize"],
-        imgLabel: "Img 2",
+            "We do not just trade assets; we trade the relationships between them. Our engines exploit statistical dislocations across G10 FX and global equity indices, capturing alpha when correlations break down or mean-revert during periods of macro stress.",
+        imgSrc: "/Relative- Value Dislocation.png",
     },
     {
         tab: "Risk upgrade",
         step: "03",
         title: "The Risk-Engine\nUpgrade (Nov 2022)",
         description:
-            "We monetize the measurable mechanisms of market stress—volatility repricing, dispersion, and correlation stress—across highly liquid G10 FX and exchange-traded equity index derivatives (SPX/ES options & futures), built for unstable and",
-        buttons: ["We monetize", "We monetize"],
-        imgLabel: "Img 3",
+            "Following the 2022 rate shock, we deployed a structural architectural upgrade: a \"Crisis Alpha\" overlay. This adaptive logic allows the system to instantly transition from \"Harvesting\" to \"Long Volatility,\" monetizing the velocity of tail-risk events rather than just surviving them.",
+        imgSrc: "/The Risk-Engine Upgrade.png",
     },
 ];
 
@@ -172,27 +171,17 @@ function TabBar({
    ═══════════════════════════════════════════════════════════ */
 function RightContent({ item }: { item: (typeof ITEMS)[number] }) {
     return (
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-6">
             <p className="text-[#1A2B30]/55 text-sm md:text-[15px] leading-relaxed max-w-xl">
                 {item.description}
             </p>
-            <div className="flex gap-2">
-                {item.buttons.map((btn, bi) => (
-                    <button
-                        key={bi}
-                        className={`px-4 py-1.5 rounded-full font-mono text-xs tracking-wide transition-colors ${bi === 0
-                            ? "bg-[#5A7A80] text-white"
-                            : "bg-transparent text-[#5A7A80] border border-[#5A7A80]/30"
-                            }`}
-                    >
-                        {btn}
-                    </button>
-                ))}
-            </div>
-            <div className="w-full aspect-[16/9] bg-white rounded-lg flex items-center justify-center mt-2 shadow-sm">
-                <span className="font-mono text-[#1A2B30]/15 text-xl">
-                    {item.imgLabel}
-                </span>
+
+            <div className="mt-4 rounded-lg overflow-hidden flex justify-start">
+                <img
+                    src={item.imgSrc}
+                    alt={item.title}
+                    className="w-auto h-auto max-w-full max-h-[50vh] object-contain block"
+                />
             </div>
         </div>
     );
