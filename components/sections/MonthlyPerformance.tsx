@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { fetchMonthlyPerformance, type MonthlyPerformanceItem } from "@/lib/googleSheetsClient";
 
 /* ═══════════════════════════════════════════════════════════
-   Simulated monthly return data
+   Fallback data (used while fetching or on failure)
    ═══════════════════════════════════════════════════════════ */
-const MONTHS = [
+const FALLBACK_MONTHS: MonthlyPerformanceItem[] = [
     { month: "January", value: 2.14 },
     { month: "February", value: 3.47 },
     { month: "March", value: 4.82 },
@@ -14,7 +15,23 @@ const MONTHS = [
     { month: "June", value: 3.28 },
 ];
 
-const maxValue = Math.max(...MONTHS.map((m) => m.value));
+const MONTH_NAMES = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+];
+
+/** Extract month name from various formats:
+ *  - "Sat Feb 01 2025 00:00:00 GMT+0200 ..." → "February"
+ *  - "January 2025" → "January"
+ *  - "January" → "January"
+ */
+function displayMonth(raw: string): string {
+    const d = new Date(raw);
+    if (!isNaN(d.getTime())) {
+        return MONTH_NAMES[d.getMonth()];
+    }
+    return raw.replace(/\s+\d{4}$/, "");
+}
 
 const PERIODS = ["6 mon", "1yr", "All time"] as const;
 
@@ -23,6 +40,26 @@ const PERIODS = ["6 mon", "1yr", "All time"] as const;
    ═══════════════════════════════════════════════════════════ */
 export function MonthlyPerformance() {
     const [activePeriod, setActivePeriod] = useState<string>("All time");
+    const [months, setMonths] = useState<MonthlyPerformanceItem[]>(FALLBACK_MONTHS);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadData() {
+            const data = await fetchMonthlyPerformance();
+            if (!cancelled && data && data.length > 0) {
+                setMonths(data);
+            }
+        }
+
+        loadData();
+        return () => { cancelled = true; };
+    }, []);
+
+    const values = months.map((m) => m.value);
+    const maxValue = Math.max(...values);
+    const minValue = Math.min(...values);
+    const range = maxValue - minValue || 1; // avoid division by zero
 
     return (
         <section
@@ -166,9 +203,9 @@ export function MonthlyPerformance() {
 
                         {/* ── Bar chart — fills remaining height ── */}
                         <div className="flex items-end gap-1.5 md:gap-5 lg:gap-8 flex-1">
-                            {MONTHS.map((item, i) => {
+                            {months.map((item, i) => {
                                 const isHighlight = item.value === maxValue;
-                                const heightPct = (item.value / maxValue) * 85 + 15;
+                                const heightPct = ((item.value - minValue) / range) * 75 + 15;
 
                                 return (
                                     <div
@@ -217,16 +254,12 @@ export function MonthlyPerformance() {
                                                 {/* Month label inside bar */}
                                                 <div className="absolute inset-x-0 top-3 flex justify-center">
                                                     <span
-                                                        className={`font-mono text-[10px] md:text-xs tracking-wide ${isHighlight
+                                                        className={`month-label font-mono text-[10px] md:text-xs tracking-wide ${isHighlight
                                                             ? "text-[#5CCAD3]/70"
                                                             : "text-[#F4FFFF]"
                                                             }`}
-                                                        style={{
-                                                            writingMode: "vertical-rl" as const,
-                                                            textOrientation: "mixed" as const,
-                                                        }}
                                                     >
-                                                        {item.month}
+                                                        {displayMonth(item.month)}
                                                     </span>
                                                 </div>
                                             </div>
@@ -238,6 +271,20 @@ export function MonthlyPerformance() {
                     </div>
                 </div>
             </div>
+
+            <style jsx>{`
+                .month-label {
+                    writing-mode: horizontal-tb;
+                    text-orientation: mixed;
+                }
+
+                @media (max-width: 767px) {
+                    .month-label {
+                        writing-mode: vertical-rl;
+                        text-orientation: mixed;
+                    }
+                }
+            `}</style>
         </section>
     );
 }

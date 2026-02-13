@@ -39,11 +39,11 @@ for (let w = 0; w < 52; w++) {
     weekLabels.push(`${month} ${day}`);
 }
 
-// Edge Capital: overall +24.6% with sharp dips and recoveries
-const edgeWeekly: number[] = [100];
-const edgeDrift = 0.0045; // slight upward bias per week
+// Vol Prem (formerly Edge Capital): overall +24.6% with sharp dips and recoveries
+const volPremWeekly: number[] = [100];
+const volPremDrift = 0.0045; // slight upward bias per week
 for (let i = 1; i < 52; i++) {
-    const prev = edgeWeekly[i - 1];
+    const prev = volPremWeekly[i - 1];
     const noise = (rng() - 0.48) * 3.2; // asymmetric upward
     // Inject sharp V-turns at specific weeks
     let shock = 0;
@@ -58,16 +58,31 @@ for (let i = 1; i < 52; i++) {
     if (i === 36) shock = 3.1;   // snap back
     if (i === 42) shock = -1.8;  // Oct dip
     if (i === 43) shock = 2.9;   // recovery
-    const change = prev * (edgeDrift + noise / 100 + shock / 100);
-    edgeWeekly.push(Math.max(prev + change * 0.3, 96));
+    const change = prev * (volPremDrift + noise / 100 + shock / 100);
+    volPremWeekly.push(Math.max(prev + change * 0.3, 96));
 }
 // Normalize so final value = 124.6, but start stays 100
-const edgeFinalRaw = edgeWeekly[51];
-const edgeTarget = 124.6;
-const edgeValues = edgeWeekly.map(v => {
-    // Scale the movement from 100
-    // v_scaled = 100 + (v - 100) * scaleFactor
-    const scale = (edgeTarget - 100) / (edgeFinalRaw - 100);
+const volPremFinalRaw = volPremWeekly[51];
+const volPremTarget = 124.6;
+const volPremValues = volPremWeekly.map(v => {
+    const scale = (volPremTarget - 100) / (volPremFinalRaw - 100);
+    return +(100 + (v - 100) * scale).toFixed(2);
+});
+
+// Corr Arb: overall +18.6% with steady low-vol growth
+const corrWeekly: number[] = [100];
+const corrDrift = 0.0035; // steady upward bias
+for (let i = 1; i < 52; i++) {
+    const prev = corrWeekly[i - 1];
+    const noise = (rng() - 0.5) * 1.2; // low noise
+    const change = prev * (corrDrift + noise / 100);
+    corrWeekly.push(Math.max(prev + change, 98));
+}
+// Normalize so final value = 118.6
+const corrFinalRaw = corrWeekly[51];
+const corrTarget = 118.6; // +18.6%
+const corrValues = corrWeekly.map(v => {
+    const scale = (corrTarget - 100) / (corrFinalRaw - 100);
     return +(100 + (v - 100) * scale).toFixed(2);
 });
 
@@ -104,7 +119,8 @@ const msciValues = msciWeekly.map(v => {
 
 export const chartData = weekLabels.map((label, i) => ({
     week: label,
-    edge: edgeValues[i],
+    volPrem: volPremValues[i],
+    corr: corrValues[i],
     msci: msciValues[i],
 }));
 
@@ -282,22 +298,38 @@ export function StressTestChart2022({ data }: { data?: typeof chartData }) {
                             }}
                         />
 
-                        {/* Edge Capital — solid cyan/mint, rising, with glow */}
+                        {/* Corr Arb — solid light cyan, steady growth */}
                         <Line
                             type="linear"
-                            dataKey="edge"
-                            name="Edge Capital"
-                            stroke="#5EEAD4"
+                            dataKey="corr"
+                            name="Corr Arb"
+                            stroke="#C4EBF1"
                             strokeWidth={2}
                             dot={false}
                             activeDot={{
                                 r: 3,
-                                fill: "#5EEAD4",
+                                fill: "#C4EBF1",
+                                stroke: "#050A0C",
+                                strokeWidth: 1.5,
+                            }}
+                        />
+
+                        {/* Vol Prem (formerly Edge Capital) — solid teal/slate, rising, with glow */}
+                        <Line
+                            type="linear"
+                            dataKey="volPrem"
+                            name="Vol Prem"
+                            stroke="#428095"
+                            strokeWidth={2}
+                            dot={false}
+                            activeDot={{
+                                r: 3,
+                                fill: "#428095",
                                 stroke: "#050A0C",
                                 strokeWidth: 1.5,
                             }}
                             style={{
-                                filter: "drop-shadow(0 0 6px rgba(94, 234, 212, 0.4))",
+                                filter: "drop-shadow(0 0 6px rgba(66, 128, 149, 0.4))",
                             }}
                         />
                     </LineChart>
@@ -306,17 +338,30 @@ export function StressTestChart2022({ data }: { data?: typeof chartData }) {
 
             {/* Annotation overlay — positioned over the right side of the chart */}
             <div className="absolute top-[20px] right-[16px] md:right-[24px] flex flex-col items-end gap-0 pointer-events-none select-none font-mono">
-                {/* +24.6% label */}
+                {/* +24.6% label (Vol Prem) */}
                 <div className="flex items-center gap-2 mb-1">
                     <span
                         className="font-bold tracking-wide"
                         style={{
                             fontSize: 'clamp(13px, 1.3em, 18px)',
-                            color: "#5EEAD4",
-                            textShadow: "0 0 12px rgba(94, 234, 212, 0.4)",
+                            color: "#428095",
+                            textShadow: "0 0 12px rgba(66, 128, 149, 0.4)",
                         }}
                     >
                         +24.6%
+                    </span>
+                </div>
+
+                {/* +18.6% label (Corr Arb) */}
+                <div className="flex items-center gap-2 mb-1">
+                    <span
+                        className="font-bold tracking-wide"
+                        style={{
+                            fontSize: 'clamp(13px, 1.3em, 18px)',
+                            color: "#C4EBF1",
+                        }}
+                    >
+                        +18.6%
                     </span>
                 </div>
 
@@ -348,8 +393,12 @@ export function StressTestChart2022({ data }: { data?: typeof chartData }) {
             {/* Legend */}
             <div className="flex justify-center gap-8 mt-3 font-mono tracking-wide" style={{ fontSize: 'clamp(11px, 1em, 14px)' }}>
                 <span className="flex items-center gap-2.5">
-                    <span className="inline-block w-5 h-[1.5px]" style={{ backgroundColor: "#5EEAD4" }} />
-                    <span style={{ color: "#5EEAD4" }} className="opacity-70">Edge Capital</span>
+                    <span className="inline-block w-5 h-[1.5px]" style={{ backgroundColor: "#428095" }} />
+                    <span style={{ color: "#428095" }} className="opacity-70">Vol Prem</span>
+                </span>
+                <span className="flex items-center gap-2.5">
+                    <span className="inline-block w-5 h-[1.5px]" style={{ backgroundColor: "#C4EBF1" }} />
+                    <span style={{ color: "#C4EBF1" }} className="opacity-70">Corr Arb</span>
                 </span>
                 <span className="flex items-center gap-2.5">
                     <svg width="20" height="2" className="opacity-70">

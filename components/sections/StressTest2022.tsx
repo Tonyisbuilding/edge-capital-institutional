@@ -35,7 +35,7 @@ export function StressTest2022() {
     const chartHeight = useTransform(
         scrollYProgress,
         [0, 0.4, 0.7],
-        ["50vh", "50vh", "75vh"]
+        ["50vh", "50vh", "60vh"]
     );
     const chartFontSize = useTransform(
         scrollYProgress,
@@ -153,7 +153,7 @@ export function StressTest2022() {
             <div ref={containerRef} className="hidden md:block" style={{ height: "300vh" }}>
                 {/* Sticky viewport — pins for the duration */}
                 <div
-                    className="sticky top-0 h-screen overflow-hidden border-y border-white/[0.04] flex items-center py-[25px]"
+                    className="sticky top-0 h-screen overflow-hidden border-y border-white/[0.04] flex items-center py-[45px]"
                     style={{ backgroundColor: "#050A0C" }}
                 >
                     {/* Faint isometric grid pattern overlay */}

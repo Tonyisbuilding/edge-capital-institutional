@@ -141,3 +141,64 @@ async function fetchFundReturns(): Promise<FundReturnsResponse | null> {
 
 export { fetchFundReturns };
 export type { FundReturnsResponse, FundClassData, FundMonth, FundReturns };
+
+// ────────────────────────────────────────────────────────────────────────────────
+// Monthly Performance CMS API
+// ────────────────────────────────────────────────────────────────────────────────
+
+const MONTHLY_PERFORMANCE_SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbzsnRH_ZhYStFiYC3P3bZuKJtJ_Cb-NOhtyhMcSj60slK3BHm4MRQNfKxwWq2-t_mIX/exec";
+
+interface MonthlyPerformanceItem {
+    month: string;
+    value: number;
+}
+
+interface MonthlyPerformanceResponse {
+    ok: boolean;
+    data: MonthlyPerformanceItem[];
+    error?: string;
+}
+
+/**
+ * Fetches the latest published monthly performance data from the Google Sheets CMS.
+ * Returns the last 6 published months, or null on failure.
+ */
+async function fetchMonthlyPerformance(): Promise<MonthlyPerformanceItem[] | null> {
+    if (!MONTHLY_PERFORMANCE_SCRIPT_URL) {
+        console.warn(
+            "NEXT_PUBLIC_MONTHLY_PERFORMANCE_SCRIPT_URL not set. Monthly performance will use fallback data."
+        );
+        return null;
+    }
+
+    try {
+        const url = `${MONTHLY_PERFORMANCE_SCRIPT_URL}?t=${Date.now()}`;
+        const response = await fetch(url, {
+            redirect: "follow",
+            cache: "no-store",
+        });
+
+        const raw = await response.text();
+
+        let data: MonthlyPerformanceResponse;
+        try {
+            data = JSON.parse(raw);
+        } catch {
+            console.error("Monthly performance: non-JSON response:", raw.slice(0, 300));
+            return null;
+        }
+
+        if (!data.ok || data.error) {
+            throw new Error(data.error || "Unknown error");
+        }
+
+        return data.data;
+    } catch (error) {
+        console.error("Failed to fetch monthly performance:", error);
+        return null;
+    }
+}
+
+export { fetchMonthlyPerformance };
+export type { MonthlyPerformanceItem };
