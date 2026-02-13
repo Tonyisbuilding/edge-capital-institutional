@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
     LineChart,
     Line,
@@ -12,6 +12,7 @@ import {
     ReferenceArea,
     ReferenceLine,
 } from "recharts";
+import { fetchNAVPerformance, type NAVDataPoint } from "@/lib/googleSheetsClient";
 
 // ------------------------------------------------------------------
 // Synthetic WEEKLY data for 2022 — Edge rises with volatility, MSCI drops with bear rallies
@@ -192,19 +193,55 @@ const YAxisTick = ({ x, y, payload }: any) => (
 );
 
 // ------------------------------------------------------------------
-// Custom annotation labels rendered on the chart via customized layer
+// Helper: Extract and rebase 2022 data from NAV performance
 // ------------------------------------------------------------------
-const AnnotationLayer = () => {
-    // These will be rendered as custom positioned elements relative to the chart container
-    return null; // annotations handled via absolute-positioned overlay
-};
+function extract2022Data(navData: NAVDataPoint[]) {
+    // Filter for 2022 months only
+    const data2022 = navData.filter(d => d.date.includes("2022"));
+
+    if (data2022.length === 0) return null;
+
+    // Get Jan 2022 baseline values
+    const baseline = data2022[0];
+    const vpBase = baseline.volPremiumRisk;
+    const caBase = baseline.correlationArbitrage;
+    const msciBase = baseline.msciWorld;
+
+    // Rebase all values to start at 100 in Jan 2022
+    return data2022.map(d => ({
+        week: d.date.split(" ")[0], // "Jan", "Feb", etc. (using "week" key for chart compatibility)
+        volPrem: Math.round((d.volPremiumRisk / vpBase) * 100 * 10) / 10,
+        corr: Math.round((d.correlationArbitrage / caBase) * 100 * 10) / 10,
+        msci: Math.round((d.msciWorld / msciBase) * 100 * 10) / 10,
+    }));
+}
 
 // ------------------------------------------------------------------
 // Main Component
 // ------------------------------------------------------------------
 export function StressTestChart2022({ data }: { data?: typeof chartData }) {
-    const displayData = data || chartData;
+    const [chartData2022, setChartData2022] = useState<typeof chartData | null>(null);
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadData() {
+            const navData = await fetchNAVPerformance();
+            if (!cancelled && navData && navData.length > 0) {
+                const processed = extract2022Data(navData);
+                if (processed) {
+                    setChartData2022(processed);
+                }
+            }
+        }
+
+        loadData();
+        return () => { cancelled = true; };
+    }, []);
+
+    const displayData = data || chartData2022 || chartData;
+
     return (
         <div className="relative h-full">
             {/* Chart */}
@@ -224,15 +261,15 @@ export function StressTestChart2022({ data }: { data?: typeof chartData }) {
 
                         {/* Stress regime highlight band — covers middle portion (approx Mar to Oct) */}
                         <ReferenceArea
-                            x1="Mar 5"
-                            x2="Oct 1"
+                            x1="Mar"
+                            x2="Oct"
                             fill="#ff4444"
                             fillOpacity={0.04}
                         />
 
                         {/* Label for stress regime */}
                         <ReferenceLine
-                            x="Jun 18"
+                            x="Jun"
                             stroke="transparent"
                             label={{
                                 value: "2022 STRESS REGIME",
@@ -252,12 +289,21 @@ export function StressTestChart2022({ data }: { data?: typeof chartData }) {
                             axisLine={{ stroke: "#ffffff08" }}
                             dy={12}
                             interval={0}
-                            tickFormatter={(value: string) => {
-                                // value is "Jan 1", "Jan 8"...
-                                // Show label if day is <= 7 (first week of month)
+                            tickFormatter={(value: string, index: number) => {
+                                // For monthly data: value is "Jan", "Feb", etc.
+                                // For weekly data: value is "Jan 1", "Jan 8", etc.
+
+                                // If it's monthly data (no space in value)
+                                if (!value.includes(" ")) {
+                                    // Show every other month on mobile
+                                    const everyOtherMonths = ["Jan", "Mar", "May", "Jul", "Sep", "Nov"];
+                                    if (isMobile && !everyOtherMonths.includes(value)) return "";
+                                    return value;
+                                }
+
+                                // Original weekly data logic
                                 const [m, d] = value.split(" ");
                                 if (Number(d) > 7) return "";
-                                // On mobile, show every other month (Jan, Mar, May, Jul, Sep, Nov)
                                 const everyOtherMonths = ["Jan", "Mar", "May", "Jul", "Sep", "Nov"];
                                 if (isMobile && !everyOtherMonths.includes(m)) return "";
                                 return m;
@@ -267,8 +313,8 @@ export function StressTestChart2022({ data }: { data?: typeof chartData }) {
                             tick={<YAxisTick />}
                             tickLine={false}
                             axisLine={false}
-                            domain={[75, 130]}
-                            ticks={[80, 90, 100, 110, 120, 130]}
+                            domain={[75, 140]}
+                            ticks={[80, 90, 100, 110, 120, 130, 140]}
                             dx={-4}
                         />
                         <Tooltip
@@ -334,60 +380,6 @@ export function StressTestChart2022({ data }: { data?: typeof chartData }) {
                         />
                     </LineChart>
                 </ResponsiveContainer>
-            </div>
-
-            {/* Annotation overlay — positioned over the right side of the chart */}
-            <div className="absolute top-[20px] right-[16px] md:right-[24px] flex flex-col items-end gap-0 pointer-events-none select-none font-mono">
-                {/* +24.6% label (Vol Prem) */}
-                <div className="flex items-center gap-2 mb-1">
-                    <span
-                        className="font-bold tracking-wide"
-                        style={{
-                            fontSize: 'clamp(13px, 1.3em, 18px)',
-                            color: "#428095",
-                            textShadow: "0 0 12px rgba(66, 128, 149, 0.4)",
-                        }}
-                    >
-                        +24.6%
-                    </span>
-                </div>
-
-                {/* +18.6% label (Corr Arb) */}
-                <div className="flex items-center gap-2 mb-1">
-                    <span
-                        className="font-bold tracking-wide"
-                        style={{
-                            fontSize: 'clamp(13px, 1.3em, 18px)',
-                            color: "#C4EBF1",
-                        }}
-                    >
-                        +18.6%
-                    </span>
-                </div>
-
-                {/* Vertical bracket */}
-                <div className="flex items-center gap-2">
-                    {/* Bracket */}
-                    <div className="flex flex-col items-center">
-                        <div className="w-[1px] bg-white/20" style={{ height: "120px" }} />
-                    </div>
-                    {/* Spread label */}
-                    <div className="flex flex-col items-center justify-center" style={{ height: "120px" }}>
-                        <span className="text-white/50 tracking-[0.15em] uppercase" style={{ fontSize: 'clamp(10px, 0.95em, 14px)' }}>
-                            43%
-                        </span>
-                        <span className="text-white/30 tracking-[0.15em] uppercase" style={{ fontSize: 'clamp(8px, 0.8em, 12px)' }}>
-                            SPREAD
-                        </span>
-                    </div>
-                </div>
-
-                {/* -18.7% label */}
-                <div className="flex items-center gap-2 mt-1">
-                    <span className="font-bold tracking-wide text-[#ACACAC]" style={{ fontSize: 'clamp(13px, 1.3em, 18px)' }}>
-                        −18.7%
-                    </span>
-                </div>
             </div>
 
             {/* Legend */}

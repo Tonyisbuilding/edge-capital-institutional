@@ -6,8 +6,6 @@ import { motion, useScroll, useTransform } from "framer-motion";
 /* ═══════════════════════════════════════════════════════════
    Data
    ═══════════════════════════════════════════════════════════ */
-import images from "@/constants/images";
-
 const ITEMS = [
     {
         tab: "Engine one",
@@ -171,16 +169,16 @@ function TabBar({
    ═══════════════════════════════════════════════════════════ */
 function RightContent({ item }: { item: (typeof ITEMS)[number] }) {
     return (
-        <div className="flex flex-col gap-6">
-            <p className="text-[#1A2B30]/55 text-sm md:text-[15px] leading-relaxed max-w-xl">
+        <div className="flex flex-col gap-4 md:gap-6 h-full overflow-hidden">
+            <p className="text-[#1A2B30]/55 text-sm md:text-[15px] leading-relaxed max-w-xl flex-shrink-0">
                 {item.description}
             </p>
 
-            <div className="mt-4 rounded-lg overflow-hidden flex justify-start">
+            <div className="mt-2 md:mt-4 rounded-lg overflow-hidden flex justify-start items-start flex-1 min-h-0">
                 <img
                     src={item.imgSrc}
                     alt={item.title}
-                    className="w-auto h-auto max-w-full max-h-[50vh] object-contain block"
+                    className="w-full h-auto max-h-full object-contain block"
                 />
             </div>
         </div>

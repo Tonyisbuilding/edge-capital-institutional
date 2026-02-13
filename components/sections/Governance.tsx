@@ -4,7 +4,7 @@ import { Handshake, Settings, List } from "lucide-react";
 export function Governance() {
     return (
         <Section className="bg-[#F6FEFF] pb-32 -mt-[10px] rounded-t-[20px] relative z-10">
-            <div className="max-w-7xl mx-auto px-6 md:px-8">
+            <div className="max-w-7xl mx-auto px-[10px] md:px-8">
                 <div className="mb-16 max-w-3xl mx-auto text-center">
                     <h2 className="text-3xl md:text-4xl font-mono font-bold text-institutional-charcoal mb-6">
                         Institutional Access & Infrastructure

@@ -160,11 +160,16 @@ interface MonthlyPerformanceResponse {
     error?: string;
 }
 
+type PerformanceStrategy = "vol_premium" | "corr_arb";
+
 /**
  * Fetches the latest published monthly performance data from the Google Sheets CMS.
- * Returns the last 6 published months, or null on failure.
+ * Pass strategy to select which table to read ("vol_premium" or "corr_arb").
+ * Returns the published months, or null on failure.
  */
-async function fetchMonthlyPerformance(): Promise<MonthlyPerformanceItem[] | null> {
+async function fetchMonthlyPerformance(
+    strategy: PerformanceStrategy = "vol_premium"
+): Promise<MonthlyPerformanceItem[] | null> {
     if (!MONTHLY_PERFORMANCE_SCRIPT_URL) {
         console.warn(
             "NEXT_PUBLIC_MONTHLY_PERFORMANCE_SCRIPT_URL not set. Monthly performance will use fallback data."
@@ -173,7 +178,7 @@ async function fetchMonthlyPerformance(): Promise<MonthlyPerformanceItem[] | nul
     }
 
     try {
-        const url = `${MONTHLY_PERFORMANCE_SCRIPT_URL}?t=${Date.now()}`;
+        const url = `${MONTHLY_PERFORMANCE_SCRIPT_URL}?strategy=${strategy}&t=${Date.now()}`;
         const response = await fetch(url, {
             redirect: "follow",
             cache: "no-store",
@@ -201,4 +206,66 @@ async function fetchMonthlyPerformance(): Promise<MonthlyPerformanceItem[] | nul
 }
 
 export { fetchMonthlyPerformance };
-export type { MonthlyPerformanceItem };
+export type { MonthlyPerformanceItem, PerformanceStrategy };
+
+// ────────────────────────────────────────────────────────────────────────────────
+// NAV Performance CMS API
+// ────────────────────────────────────────────────────────────────────────────────
+
+const NAV_PERFORMANCE_SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbzsnRH_ZhYStFiYC3P3bZuKJtJ_Cb-NOhtyhMcSj60slK3BHm4MRQNfKxwWq2-t_mIX/exec";
+
+interface NAVDataPoint {
+    date: string;
+    correlationArbitrage: number;
+    volPremiumRisk: number;
+    msciWorld: number;
+}
+
+interface NAVPerformanceResponse {
+    ok: boolean;
+    data: NAVDataPoint[];
+    error?: string;
+}
+
+/**
+ * Fetches NAV total return data from Google Sheets CMS.
+ * Each row has date + three rebased-to-100 series values.
+ * Returns all published rows, or null on failure.
+ */
+async function fetchNAVPerformance(): Promise<NAVDataPoint[] | null> {
+    if (!NAV_PERFORMANCE_SCRIPT_URL) {
+        console.warn("NAV performance script URL not set. Using fallback data.");
+        return null;
+    }
+
+    try {
+        const url = `${NAV_PERFORMANCE_SCRIPT_URL}?sheet=NAVPerformance&t=${Date.now()}`;
+        const response = await fetch(url, {
+            redirect: "follow",
+            cache: "no-store",
+        });
+
+        const raw = await response.text();
+
+        let data: NAVPerformanceResponse;
+        try {
+            data = JSON.parse(raw);
+        } catch {
+            console.error("NAV performance: non-JSON response:", raw.slice(0, 300));
+            return null;
+        }
+
+        if (!data.ok || data.error) {
+            throw new Error(data.error || "Unknown error");
+        }
+
+        return data.data;
+    } catch (error) {
+        console.error("Failed to fetch NAV performance:", error);
+        return null;
+    }
+}
+
+export { fetchNAVPerformance };
+export type { NAVDataPoint };

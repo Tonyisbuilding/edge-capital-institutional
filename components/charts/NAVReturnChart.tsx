@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
     LineChart,
     Line,
@@ -8,17 +9,15 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    Legend,
 } from "recharts";
+import { fetchNAVPerformance, type NAVDataPoint } from "@/lib/googleSheetsClient";
 
 // ------------------------------------------------------------------
-// Dummy data – realistic monthly points from Jan 2020 → Dec 2025
+// Fallback dummy data – realistic monthly points from Jan 2020 → Dec 2025
 // All series rebased to 100 at inception.
 // Uses a seeded PRNG for deterministic output across renders.
-// Replace this array with Google-Sheets-fetched data later.
 // ------------------------------------------------------------------
-export const navReturnData = (() => {
-    // --- Seeded PRNG (mulberry32) for deterministic chart data ---
+const FALLBACK_NAV_DATA: NAVDataPoint[] = (() => {
     const seed = (s: number) => {
         return () => {
             s |= 0; s = (s + 0x6d2b79f5) | 0;
@@ -28,139 +27,57 @@ export const navReturnData = (() => {
         };
     };
     const rand = seed(42);
-    // Gaussian-ish noise from uniform (Box-Muller lite)
     const randn = () => {
         const u1 = rand(), u2 = rand();
         return Math.sqrt(-2 * Math.log(u1 + 0.0001)) * Math.cos(2 * Math.PI * u2);
     };
 
-    const points: {
-        date: string;
-        correlationArbitrage: number;
-        volPremiumRisk: number;
-        msciWorld: number;
-    }[] = [];
-
+    const points: NAVDataPoint[] = [];
     const r = (v: number) => Math.round(v * 10) / 10;
 
-    let ca = 100;
-    let vp = 100;
-    let msci = 100;
+    let ca = 100, vp = 100, msci = 100;
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    const months = [
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-    ];
-
-    // Monthly return profiles: [drift, volatility] per regime
-    // These produce realistic jagged lines with ~2-5% monthly swings
     for (let year = 2020; year <= 2025; year++) {
         for (let m = 0; m < 12; m++) {
             const label = `${months[m]} ${year}`;
 
-            // ---------- MSCI World (~ends 190) ----------
             let msciDrift: number, msciVol: number;
-            if (year === 2020 && m <= 2) {
-                // COVID crash: large negative drift + high vol
-                msciDrift = m === 2 ? -0.12 : -0.03;
-                msciVol = 0.06;
-            } else if (year === 2020) {
-                // Recovery rally
-                msciDrift = 0.035;
-                msciVol = 0.04;
-            } else if (year === 2021) {
-                msciDrift = 0.015;
-                msciVol = 0.025;
-            } else if (year === 2022 && m < 6) {
-                // 2022 bear market
-                msciDrift = -0.02;
-                msciVol = 0.035;
-            } else if (year === 2022) {
-                // H2 2022 chop
-                msciDrift = 0.005;
-                msciVol = 0.03;
-            } else if (year === 2023) {
-                msciDrift = 0.012;
-                msciVol = 0.025;
-            } else if (year === 2024) {
-                msciDrift = 0.01;
-                msciVol = 0.02;
-            } else {
-                msciDrift = 0.008;
-                msciVol = 0.02;
-            }
+            if (year === 2020 && m <= 2) { msciDrift = m === 2 ? -0.12 : -0.03; msciVol = 0.06; }
+            else if (year === 2020) { msciDrift = 0.035; msciVol = 0.04; }
+            else if (year === 2021) { msciDrift = 0.015; msciVol = 0.025; }
+            else if (year === 2022 && m < 6) { msciDrift = -0.02; msciVol = 0.035; }
+            else if (year === 2022) { msciDrift = 0.005; msciVol = 0.03; }
+            else if (year === 2023) { msciDrift = 0.012; msciVol = 0.025; }
+            else if (year === 2024) { msciDrift = 0.01; msciVol = 0.02; }
+            else { msciDrift = 0.008; msciVol = 0.02; }
             msci *= 1 + msciDrift + msciVol * randn();
 
-            // ---------- Correlation Arbitrage (~ends 225) ----------
             let caDrift: number, caVol: number;
-            if (year === 2020 && m <= 2) {
-                // Uncorrelated to crash – slight positive
-                caDrift = 0.005;
-                caVol = 0.02;
-            } else if (year === 2020) {
-                caDrift = 0.018;
-                caVol = 0.025;
-            } else if (year === 2021) {
-                caDrift = 0.016;
-                caVol = 0.025;
-            } else if (year === 2022 && m < 6) {
-                // Holds up during drawdown
-                caDrift = 0.01;
-                caVol = 0.02;
-            } else if (year === 2022) {
-                caDrift = 0.014;
-                caVol = 0.02;
-            } else if (year === 2023) {
-                caDrift = 0.01;
-                caVol = 0.018;
-            } else if (year === 2024) {
-                caDrift = 0.008;
-                caVol = 0.015;
-            } else {
-                caDrift = 0.007;
-                caVol = 0.015;
-            }
+            if (year === 2020 && m <= 2) { caDrift = 0.005; caVol = 0.02; }
+            else if (year === 2020) { caDrift = 0.018; caVol = 0.025; }
+            else if (year === 2021) { caDrift = 0.016; caVol = 0.025; }
+            else if (year === 2022 && m < 6) { caDrift = 0.01; caVol = 0.02; }
+            else if (year === 2022) { caDrift = 0.014; caVol = 0.02; }
+            else if (year === 2023) { caDrift = 0.01; caVol = 0.018; }
+            else if (year === 2024) { caDrift = 0.008; caVol = 0.015; }
+            else { caDrift = 0.007; caVol = 0.015; }
             ca *= 1 + caDrift + caVol * randn();
 
-            // ---------- Vol Premium Risk (~ends 270) ----------
             let vpDrift: number, vpVol: number;
-            if (year === 2020 && m <= 2) {
-                vpDrift = -0.01;
-                vpVol = 0.03;
-            } else if (year === 2020) {
-                vpDrift = 0.012;
-                vpVol = 0.03;
-            } else if (year === 2021) {
-                vpDrift = 0.014;
-                vpVol = 0.03;
-            } else if (year === 2022) {
-                // Strong in high-vol regime
-                vpDrift = 0.022;
-                vpVol = 0.035;
-            } else if (year === 2023 && m < 6) {
-                vpDrift = 0.018;
-                vpVol = 0.03;
-            } else if (year === 2023) {
-                vpDrift = 0.012;
-                vpVol = 0.025;
-            } else if (year === 2024) {
-                vpDrift = 0.01;
-                vpVol = 0.02;
-            } else {
-                vpDrift = 0.009;
-                vpVol = 0.02;
-            }
+            if (year === 2020 && m <= 2) { vpDrift = -0.01; vpVol = 0.03; }
+            else if (year === 2020) { vpDrift = 0.012; vpVol = 0.03; }
+            else if (year === 2021) { vpDrift = 0.014; vpVol = 0.03; }
+            else if (year === 2022) { vpDrift = 0.022; vpVol = 0.035; }
+            else if (year === 2023 && m < 6) { vpDrift = 0.018; vpVol = 0.03; }
+            else if (year === 2023) { vpDrift = 0.012; vpVol = 0.025; }
+            else if (year === 2024) { vpDrift = 0.01; vpVol = 0.02; }
+            else { vpDrift = 0.009; vpVol = 0.02; }
             vp *= 1 + vpDrift + vpVol * randn();
 
-            points.push({
-                date: label,
-                correlationArbitrage: r(ca),
-                volPremiumRisk: r(vp),
-                msciWorld: r(msci),
-            });
+            points.push({ date: label, correlationArbitrage: r(ca), volPremiumRisk: r(vp), msciWorld: r(msci) });
         }
     }
-
     return points;
 })();
 
@@ -181,7 +98,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
                     minWidth: "220px",
                 }}
             >
-                {/* Accent gradient bar */}
                 <div
                     className="rounded-full mb-3"
                     style={{
@@ -266,27 +182,25 @@ const renderLegend = () => {
 // ------------------------------------------------------------------
 const PERIOD_TABS = ["ALL", "1 YEAR", "3 MONTHS"] as const;
 
-function ChartStatsHeader() {
-    const last = navReturnData[navReturnData.length - 1];
+function ChartStatsHeader({ data }: { data: NAVDataPoint[] }) {
+    const last = data[data.length - 1];
     const lastDate = last.date; // e.g. "Dec 2025"
     const [monthStr, yearStr] = lastDate.split(" ");
     const monthIdx = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].indexOf(monthStr);
     const daysInMonth = new Date(Number(yearStr), monthIdx + 1, 0).getDate();
     const formattedDate = `${daysInMonth}.${String(monthIdx + 1).padStart(2, "0")}.${yearStr}`;
 
-    // Compute stats per series
     const seriesStats = (Object.keys(SERIES) as SeriesKey[]).map((key) => {
         const current = last[key];
-        const toDate = current - 100; // rebased from 100
+        const toDate = current - 100;
 
-        // Monthly average: average of all month-over-month % changes
         let totalMonthlyReturn = 0;
-        for (let i = 1; i < navReturnData.length; i++) {
-            const prev = navReturnData[i - 1][key];
-            const cur = navReturnData[i][key];
+        for (let i = 1; i < data.length; i++) {
+            const prev = data[i - 1][key];
+            const cur = data[i][key];
             totalMonthlyReturn += ((cur - prev) / prev) * 100;
         }
-        const monAvg = totalMonthlyReturn / (navReturnData.length - 1);
+        const monAvg = totalMonthlyReturn / (data.length - 1);
 
         return {
             key,
@@ -299,15 +213,12 @@ function ChartStatsHeader() {
 
     return (
         <div className="mb-6 border-b border-white/5 pb-5">
-            {/* Top line: date */}
             <p className="text-[13px] font-mono text-institutional-white/90 tracking-wide mb-3">
                 {formattedDate}{" "}
                 <span className="text-institutional-white/40">(GROSS / USD)</span>
             </p>
 
-            {/* Stats row */}
             <div className="flex flex-wrap items-center justify-between gap-y-3">
-                {/* Per-series stats */}
                 <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
                     {seriesStats.map((s) => (
                         <div key={s.key} className="flex items-center gap-3 text-[11px] font-mono">
@@ -326,7 +237,6 @@ function ChartStatsHeader() {
                     ))}
                 </div>
 
-                {/* Period tabs */}
                 <div className="flex items-center gap-1 text-[10px] font-mono tracking-wider">
                     {PERIOD_TABS.map((tab, i) => (
                         <button
@@ -366,14 +276,31 @@ const YAxisTick = ({ x, y, payload }: any) => (
 // Chart Component
 // ------------------------------------------------------------------
 export function NAVReturnChart() {
+    const [chartData, setChartData] = useState<NAVDataPoint[]>(FALLBACK_NAV_DATA);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadData() {
+            const data = await fetchNAVPerformance();
+            if (!cancelled && data && data.length > 0) {
+                setChartData(data);
+            }
+        }
+
+        loadData();
+        return () => { cancelled = true; };
+    }, []);
+
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
     return (
         <div className="w-full">
-            <ChartStatsHeader />
+            <ChartStatsHeader data={chartData} />
             <div className="w-auto -mx-[10px] md:-mx-8 h-[480px] md:h-[520px] font-mono text-xs">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart
-                        data={navReturnData}
+                        data={chartData}
                         margin={{ top: 10, right: isMobile ? 8 : 24, left: isMobile ? 0 : 8, bottom: 24 }}
                         className="cursor-crosshair-custom"
                     >
@@ -390,9 +317,12 @@ export function NAVReturnChart() {
                             tickLine={false}
                             axisLine={{ stroke: "#ffffff10" }}
                             tickFormatter={(value: string, index: number) => {
-                                // Show only yearly labels (every 12 months, starting at Jan)
-                                if (index % 12 !== 0) return "";
-                                const year = value.split(" ")[1];
+                                // Show year at index 1 (Jan 2021), 13 (Jan 2022), 25 (Jan 2023), etc.
+                                // Pattern: 1, 13, 25, 37, 49... → (index - 1) % 12 === 0
+                                if ((index - 1) % 12 !== 0) return "";
+                                const parts = value.split(" ");
+                                const year = parts[1];
+                                if (!year) return ""; // Skip "Inception" or other non-date labels
                                 return year;
                             }}
                             interval={0}
@@ -402,8 +332,8 @@ export function NAVReturnChart() {
                             tick={<YAxisTick />}
                             tickLine={false}
                             axisLine={false}
-                            domain={[50, 300]}
-                            ticks={[50, 100, 150, 200, 250, 300]}
+                            domain={[50, 350]}
+                            ticks={[50, 100, 150, 200, 250, 300, 350]}
                             dx={-4}
                         />
                         <Tooltip
@@ -416,8 +346,7 @@ export function NAVReturnChart() {
                             }}
                         />
 
-
-                        {/* Correlation Arbitrage — solid, fine, linear (V-style) */}
+                        {/* Correlation Arbitrage — solid, fine, linear */}
                         <Line
                             type="linear"
                             dataKey="correlationArbitrage"
@@ -432,7 +361,7 @@ export function NAVReturnChart() {
                                 strokeWidth: 1.5,
                             }}
                         />
-                        {/* Vol Premium Risk — solid, fine, linear (V-style) */}
+                        {/* Vol Premium Risk — solid, fine, linear */}
                         <Line
                             type="linear"
                             dataKey="volPremiumRisk"
@@ -447,7 +376,7 @@ export function NAVReturnChart() {
                                 strokeWidth: 1.5,
                             }}
                         />
-                        {/* MSCI World — dotted, thinner, linear (V-style) */}
+                        {/* MSCI World — dotted, thinner, linear */}
                         <Line
                             type="linear"
                             dataKey="msciWorld"

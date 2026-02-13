@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { fetchNAVPerformance } from "@/lib/googleSheetsClient";
 
 /* ═══════════════════════════════════════════════════════════
-   Data — will be dynamic from DB/Google Sheets later
+   Fallback data
    ═══════════════════════════════════════════════════════════ */
-const EDGE_CAPITAL = 180.9;
-const MSCI_WORLD = 65.4;
-const maxVal = Math.max(EDGE_CAPITAL, MSCI_WORLD);
+const FALLBACK_EDGE_CAPITAL = 180.9;
+const FALLBACK_MSCI_WORLD = 65.4;
 
 /* Chamfer size in pixels (fixed to ensure same angle) */
 const CHAMFER = 45;
@@ -141,11 +141,38 @@ const ChamferedBar = ({
    Component
    ═══════════════════════════════════════════════════════════ */
 export function BenchmarkComparison() {
+    // State for dynamic benchmark values
+    const [edgeCapital, setEdgeCapital] = useState(FALLBACK_EDGE_CAPITAL);
+    const [msciWorld, setMsciWorld] = useState(FALLBACK_MSCI_WORLD);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadBenchmarkData() {
+            const navData = await fetchNAVPerformance();
+            if (!cancelled && navData && navData.length > 0) {
+                const latest = navData[navData.length - 1];
+
+                // Calculate cumulative returns since inception (rebased to 100)
+                const edgeReturn = latest.volPremiumRisk - 100;
+                const msciReturn = latest.msciWorld - 100;
+
+                setEdgeCapital(parseFloat(edgeReturn.toFixed(1)));
+                setMsciWorld(parseFloat(msciReturn.toFixed(1)));
+            }
+        }
+
+        loadBenchmarkData();
+        return () => { cancelled = true; };
+    }, []);
+
+    const maxVal = Math.max(edgeCapital, msciWorld);
+
     /* Heights as percentage of max — taller bar = 100% of the allocated height */
     // However, visual design might want the bars to be grounded.
     // We used 0.8 scale factor in previous code `edgePct * 0.8`.
-    const edgePct = (EDGE_CAPITAL / maxVal) * 100 * 0.8;
-    const msciPct = (MSCI_WORLD / maxVal) * 100 * 0.8;
+    const edgePct = (edgeCapital / maxVal) * 100 * 0.8;
+    const msciPct = (msciWorld / maxVal) * 100 * 0.8;
 
     return (
         <section
@@ -275,7 +302,7 @@ export function BenchmarkComparison() {
                                     className="font-mono font-medium text-white mb-0"
                                     style={{ fontSize: "35px" }}
                                 >
-                                    {MSCI_WORLD.toFixed(1)}%
+                                    {msciWorld.toFixed(1)}%
                                 </span>
                                 <span className="font-mono text-[10px] md:text-xs text-[#8AABB0] tracking-wide mb-2">
                                     MSCI World
@@ -323,7 +350,7 @@ export function BenchmarkComparison() {
                                     className="font-mono font-medium text-[#5CCAD3] mb-0"
                                     style={{ fontSize: "35px" }}
                                 >
-                                    {EDGE_CAPITAL.toFixed(1)}%
+                                    {edgeCapital.toFixed(1)}%
                                 </span>
                                 <span className="font-mono text-[10px] md:text-xs text-[#8AABB0] tracking-wide mb-2">
                                     Edge Capital

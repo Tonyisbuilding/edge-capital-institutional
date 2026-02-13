@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { fetchMonthlyPerformance, type MonthlyPerformanceItem } from "@/lib/googleSheetsClient";
+import { fetchMonthlyPerformance, type MonthlyPerformanceItem, type PerformanceStrategy } from "@/lib/googleSheetsClient";
 
 /* ═══════════════════════════════════════════════════════════
    Fallback data (used while fetching or on failure)
@@ -35,26 +35,41 @@ function displayMonth(raw: string): string {
 
 const PERIODS = ["6 mon", "1yr", "All time"] as const;
 
+const STRATEGIES: { value: PerformanceStrategy; label: string }[] = [
+    { value: "vol_premium", label: "Vol Premium" },
+    { value: "corr_arb", label: "Corr Arb" },
+];
+
 /* ═══════════════════════════════════════════════════════════
    Component
    ═══════════════════════════════════════════════════════════ */
 export function MonthlyPerformance() {
-    const [activePeriod, setActivePeriod] = useState<string>("All time");
-    const [months, setMonths] = useState<MonthlyPerformanceItem[]>(FALLBACK_MONTHS);
+    const [activePeriod, setActivePeriod] = useState<string>("6 mon");
+    const [activeStrategy, setActiveStrategy] = useState<PerformanceStrategy>("vol_premium");
+    const [allMonths, setAllMonths] = useState<MonthlyPerformanceItem[]>(FALLBACK_MONTHS);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
 
         async function loadData() {
-            const data = await fetchMonthlyPerformance();
+            const data = await fetchMonthlyPerformance(activeStrategy);
             if (!cancelled && data && data.length > 0) {
-                setMonths(data);
+                setAllMonths(data);
+            } else if (!cancelled) {
+                setAllMonths(FALLBACK_MONTHS);
             }
         }
 
         loadData();
         return () => { cancelled = true; };
-    }, []);
+    }, [activeStrategy]);
+
+    // Derive visible months based on active period
+    const months =
+        activePeriod === "1yr"
+            ? allMonths.slice(-12)
+            : allMonths.slice(-6); // "6 mon" and "All time" both show last 6 behind overlay
 
     const values = months.map((m) => m.value);
     const maxValue = Math.max(...values);
@@ -186,6 +201,55 @@ export function MonthlyPerformance() {
                             </div>
 
                             <div className="flex items-center gap-4 md:gap-6">
+                                {/* Strategy dropdown */}
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setDropdownOpen(!dropdownOpen)}
+                                        onBlur={() => setTimeout(() => setDropdownOpen(false), 150)}
+                                        className="flex items-center gap-2 font-mono text-xs tracking-wide text-white transition-colors px-3 py-1.5 rounded-md"
+                                        style={{
+                                            backgroundColor: "rgba(34, 82, 88, 0.5)",
+                                            border: "1px solid rgba(92, 202, 211, 0.2)",
+                                        }}
+                                    >
+                                        {STRATEGIES.find(s => s.value === activeStrategy)?.label}
+                                        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className={`transition-transform ${dropdownOpen ? "rotate-180" : ""}`}>
+                                            <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                    </button>
+
+                                    {dropdownOpen && (
+                                        <div
+                                            className="absolute right-0 top-full mt-1 rounded-md overflow-hidden z-20"
+                                            style={{
+                                                backgroundColor: "#0D1B1E",
+                                                border: "1px solid rgba(92, 202, 211, 0.2)",
+                                                minWidth: "130px",
+                                            }}
+                                        >
+                                            {STRATEGIES.map((s) => (
+                                                <button
+                                                    key={s.value}
+                                                    onClick={() => {
+                                                        setActiveStrategy(s.value);
+                                                        setDropdownOpen(false);
+                                                    }}
+                                                    className={`block w-full text-left font-mono text-xs tracking-wide px-3 py-2 transition-colors ${activeStrategy === s.value
+                                                        ? "text-[#5CCAD3] bg-[rgba(92,202,211,0.1)]"
+                                                        : "text-[#6A9A9E] hover:text-white hover:bg-[rgba(255,255,255,0.05)]"
+                                                        }`}
+                                                >
+                                                    {s.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Separator */}
+                                <div className="w-px h-4" style={{ backgroundColor: "rgba(63, 88, 94, 0.4)" }} />
+
+                                {/* Period toggles */}
                                 {PERIODS.map((p) => (
                                     <button
                                         key={p}
@@ -202,7 +266,32 @@ export function MonthlyPerformance() {
                         </div>
 
                         {/* ── Bar chart — fills remaining height ── */}
-                        <div className="flex items-end gap-1.5 md:gap-5 lg:gap-8 flex-1">
+                        <div className="relative flex items-end gap-1.5 md:gap-5 lg:gap-8 flex-1">
+
+                            {/* Glassy overlay for "All time" */}
+                            {activePeriod === "All time" && (
+                                <div
+                                    className="absolute inset-0 z-10 flex items-center justify-center rounded-xl"
+                                    style={{
+                                        background: "rgba(5, 10, 12, 0.70)",
+                                        backdropFilter: "blur(8px)",
+                                        WebkitBackdropFilter: "blur(8px)",
+                                    }}
+                                >
+                                    <button
+                                        className="flex items-center gap-2 px-8 py-3.5 font-mono text-sm tracking-wide text-white transition-all hover:brightness-125"
+                                        style={{
+                                            background: "linear-gradient(135deg, rgba(92, 202, 211, 0.25), rgba(34, 82, 88, 0.5))",
+                                            border: "1px solid rgba(92, 202, 211, 0.3)",
+                                            borderRadius: "10px",
+                                        }}
+                                    >
+                                        Request factsheet
+                                        <img src="/download.svg" alt="" className="w-4 h-4" style={{ filter: "brightness(0) invert(1)" }} aria-hidden="true" />
+                                    </button>
+                                </div>
+                            )}
+
                             {months.map((item, i) => {
                                 const isHighlight = item.value === maxValue;
                                 const heightPct = ((item.value - minValue) / range) * 75 + 15;
@@ -214,11 +303,11 @@ export function MonthlyPerformance() {
                                     >
                                         {/* Value above bar */}
                                         <span
-                                            className={`font-mono font-bold mb-3 ${isHighlight
+                                            className={`font-mono font-medium mb-3 ${isHighlight
                                                 ? "text-[#5CCAD3]"
                                                 : "text-white"
                                                 }`}
-                                            style={{ fontSize: "clamp(0.75rem, 2.5vw, 1.75rem)" }}
+                                            style={{ fontSize: "clamp(0.65rem, 2vw, 1.35rem)" }}
                                         >
                                             {item.value.toFixed(2)}%
                                         </span>

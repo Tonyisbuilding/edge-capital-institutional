@@ -1,11 +1,59 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { StressTestChart2022 } from "@/components/charts/StressTestChart2022";
+import { fetchNAVPerformance, type NAVDataPoint } from "@/lib/googleSheetsClient";
+
+// Helper: Calculate 2022 returns from NAV data
+function calculate2022Returns(navData: NAVDataPoint[]) {
+    const data2022 = navData.filter(d => d.date.includes("2022"));
+    if (data2022.length === 0) return null;
+
+    const first = data2022[0];
+    const last = data2022[data2022.length - 1];
+
+    return {
+        volPrem: ((last.volPremiumRisk - first.volPremiumRisk) / first.volPremiumRisk * 100).toFixed(1),
+        corrArb: ((last.correlationArbitrage - first.correlationArbitrage) / first.correlationArbitrage * 100).toFixed(1),
+        msci: ((last.msciWorld - first.msciWorld) / first.msciWorld * 100).toFixed(1),
+    };
+}
 
 export function StressTest2022() {
     const containerRef = useRef<HTMLDivElement>(null);
+
+    // State for dynamic 2022 returns
+    const [returns, setReturns] = useState({
+        volPrem: "+24.6",
+        corrArb: "+18.6",
+        msci: "-18.7",
+    });
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadReturns() {
+            const navData = await fetchNAVPerformance();
+            if (!cancelled && navData && navData.length > 0) {
+                const calculated = calculate2022Returns(navData);
+                if (calculated) {
+                    setReturns({
+                        volPrem: Number(calculated.volPrem) >= 0 ? `+${calculated.volPrem}` : calculated.volPrem,
+                        corrArb: Number(calculated.corrArb) >= 0 ? `+${calculated.corrArb}` : calculated.corrArb,
+                        msci: Number(calculated.msci) >= 0 ? `+${calculated.msci}` : calculated.msci,
+                    });
+                }
+            }
+        }
+
+        loadReturns();
+        return () => { cancelled = true; };
+    }, []);
+
+    // Calculate spread (Vol Prem - MSCI)
+    const spread = (parseFloat(returns.volPrem) - parseFloat(returns.msci)).toFixed(1);
+    const spreadFormatted = parseFloat(spread) >= 0 ? `+${spread}` : spread;
 
     // Track scroll progress within the tall scroll-spacer (0 → 1)
     const { scrollYProgress } = useScroll({
@@ -105,10 +153,10 @@ export function StressTest2022() {
                             <span className="text-white/70 font-normal">monetized the chaos</span>,
                             delivering{" "}
                             <span className="font-medium" style={{ color: "#5EEAD4" }}>
-                                +24.6% net returns
+                                {returns.volPrem}% net returns
                             </span>{" "}
                             while the global benchmark fell{" "}
-                            <span className="font-medium text-white/60">−18.7%</span>.
+                            <span className="font-medium text-white/60">{returns.msci}%</span>.
                         </p>
 
                         {/* Key stat callout */}
@@ -125,7 +173,7 @@ export function StressTest2022() {
                                         WebkitTextFillColor: "transparent",
                                     }}
                                 >
-                                    +43.3%
+                                    {spreadFormatted}%
                                 </p>
                             </div>
                             <div className="w-[1px] h-10 bg-white/[0.06]" />
@@ -227,11 +275,11 @@ export function StressTest2022() {
                                         className="font-medium"
                                         style={{ color: "#5EEAD4" }}
                                     >
-                                        +24.6% net returns
+                                        {returns.volPrem}% net returns
                                     </span>{" "}
                                     while the global benchmark fell{" "}
                                     <span className="font-medium text-white/60">
-                                        −18.7%
+                                        {returns.msci}%
                                     </span>.
                                 </p>
 
@@ -249,7 +297,7 @@ export function StressTest2022() {
                                                 WebkitTextFillColor: "transparent",
                                             }}
                                         >
-                                            +43.3%
+                                            {spreadFormatted}%
                                         </p>
                                     </div>
                                     <div className="w-[1px] h-12 bg-white/[0.06]" />
